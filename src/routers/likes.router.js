@@ -10,6 +10,18 @@ likeRouter.put('/:postId/likes', async (req, res, next) => {
     const { userId } = req.user;
     const { postId } = req.params;
 
+    // 해당 게시글의 작성자 id 가져오기
+    const { userId: authorId } = await prisma.post.findUnique({
+      where: {
+        postId: +postId,
+      },
+    });
+
+    // 본인이 작성한 게시글인지 확인
+    if (userId === authorId) {
+      throw new Error('본인이 작성한 게시글에는 좋아요를 누를 수 없습니다.');
+    }
+
     // likes 테이블에서 해당 유저가 해당 게시글에 남긴 좋아요를 검색
     const like = await prisma.like.findUnique({
       where: {
@@ -106,7 +118,19 @@ likeRouter.put('/:postId/comments/:commentId/likes', async (req, res, next) => {
     const { userId } = req.user;
     const { postId, commentId } = req.params;
 
-    // likes 테이블에서 해당 유저가 해당 게시글에 남긴 좋아요를 검색
+    // 해당 댓글의 작성자 id 가져오기
+    const { userId: commenterId } = await prisma.comment.findUnique({
+      where: {
+        commentId: +commentId,
+      },
+    });
+
+    // 본인이 작성한 댓글인지 확인
+    if (userId === commenterId) {
+      throw new Error('본인이 작성한 댓글에는 좋아요를 누를 수 없습니다.');
+    }
+
+    // likes 테이블에서 해당 유저가 해당 댓글에 남긴 좋아요를 검색
     const like = await prisma.like.findUnique({
       where: {
         userId: userId,
