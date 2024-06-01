@@ -1,4 +1,4 @@
-import { HTTP_STATUS } from '../constants/http-status.constant';
+import { HTTP_STATUS } from '../constants/http-status.constant.js';
 
 const errorHandler = (err, req, res, next) => {
   switch (err.name) {
@@ -15,6 +15,10 @@ const errorHandler = (err, req, res, next) => {
     // CustomError로 받은 에러 처리
     case 'CustomError':
       return res.status(err.code).json({ status: err.code, message: err.message });
+
+    // Joi로 발생한 에러 처리
+    case 'ValidationError':
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ status: HTTP_STATUS.BAD_REQUEST, message: err.message });
 
     // 그 밖의 예상치 못한 에러 처리
     default:
