@@ -69,7 +69,7 @@ commentRouter.get('/:postId/comments', async (req, res, next) => {
       };
     });
 
-    return res.status(200).json({ message: `${postId}번 게시글 댓글.`, comments });
+    return res.status(HTTP_STATUS.OK).json({ status: HTTP_STATUS.OK, message: `${postId}번 게시글 댓글.`, comments });
   } catch (error) {
     next(error);
   }
@@ -77,28 +77,56 @@ commentRouter.get('/:postId/comments', async (req, res, next) => {
 
 //댓글 수정 api
 commentRouter.patch('/:postId/comments/:commentId', commentValidator, async (req, res, next) => {
-  // const { userId } = req.user;
-  //테스트용 유저 아이디
-  const userId = 1;
-  const { commentId } = req.params;
-  const { content } = req.body;
+  try {
+    // const { userId } = req.user;
+    //테스트용 유저 아이디
+    const userId = 1;
+    const { commentId } = req.params;
+    const { content } = req.body;
 
-  const comment = await prisma.comment.findFirst({ where: { userId, commentId: +commentId } });
+    const comment = await prisma.comment.findFirst({ where: { userId, commentId: +commentId } });
 
-  if (!comment) {
+    if (!comment) {
+      return res
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ status: HTTP_STATUS.NOT_FOUND, message: '존재하지 않는 댓글입니다.' });
+    }
+
+    const updatedComment = await prisma.comment.update({
+      where: { userId, commentId: +commentId },
+      data: { content },
+    });
+
     return res
-      .status(HTTP_STATUS.NOT_FOUND)
-      .json({ status: HTTP_STATUS.NOT_FOUND, message: '존재하지 않는 댓글입니다.' });
+      .status(HTTP_STATUS.CREATED)
+      .json({ status: HTTP_STATUS.CREATED, message: '댓글을 수정했습니다.', updatedComment });
+  } catch (error) {
+    next(error);
   }
+});
 
-  const updatedComment = await prisma.comment.update({
-    where: { userId, commentId: +commentId },
-    data: { content },
-  });
+//댓글 삭제 api
+commentRouter.delete('/:postId/comments/:commentId', async (req, res, next) => {
+  try {
+    // const { userId } = req.user;
+    // 테스트용 유저 아이디
+    const userId = 1;
+    const { commentId } = req.params;
 
-  return res
-    .status(HTTP_STATUS.CREATED)
-    .json({ status: HTTP_STATUS.CREATED, message: '댓글을 수정했습니다.', updatedComment });
+    const comment = await prisma.comment.findUnique({ where: { userId, commentId: +commentId } });
+
+    if (!comment) {
+      return res
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ status: HTTP_STATUS.NOT_FOUND, message: '존재하지 않는 댓글입니다.' });
+    }
+
+    await prisma.comment.delete({ where: { userId, commentId: +commentId } });
+
+    return res.status(HTTP_STATUS.OK).json({ status: HTTP_STATUS.OK, message: `${commentId}번 댓글을 삭제했습니다.` });
+  } catch (error) {
+    next(error);
+  }
 });
 
 export { commentRouter };
