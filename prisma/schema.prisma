@@ -8,63 +8,74 @@ datasource db {
 }
 
 model User {
-  userId        Int         @id @default(autoincrement()) @map("user_id")
-  email         String      @unique @map("email")
-  password      String      @map("password")
-  username      String      @map("username")
-  profileImage  String?     @map("profile_image")
-  introduction  String?     @map("introduction")
-  createdAt     DateTime    @default(now()) @map("created_at")
-  updatedAt     DateTime    @updatedAt @map("updated_at")
+  userId       Int      @id @default(autoincrement()) @map("user_id")
+  email        String   @unique @map("email")
+  password     String   @map("password")
+  username     String   @map("username")
+  profileImage String?  @map("profile_image")
+  introduction String?  @map("introduction")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   post          Post[]
   comment       Comment[]
   like          Like[]
+  refreshTokens RefreshToken[] 
 
   @@map("users")
 }
 
-model Post {
-  postId        Int         @id @default(autoincrement()) @map("post_id")
-  userId        Int         @map("user_id")
-  title         String      @map("title")
-  content       String      @db.Text @map("content")
-  imageUrl      String?     @map("image_url")
-  createdAt     DateTime    @default(now()) @map("created_at")
-  updatedAt     DateTime    @updatedAt @map("updated_at")
+model RefreshToken {
+  id        Int      @id @default(autoincrement()) @map("id")
+  userId    Int      @map("userId")
+  token     String   @unique @map("token")
+  createdAt DateTime @default(now()) @map("createdAt")
+  user      User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
-  user          User        @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  comment       Comment[]
-  like          Like[]
+  @@map("RefreshTokens")
+}
+
+model Post {
+  postId    Int      @id @default(autoincrement()) @map("post_id")
+  userId    Int      @map("user_id")
+  title     String   @map("title")
+  content   String   @map("content") @db.Text
+  imageUrl  String?  @map("image_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user    User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  comment Comment[]
+  like    Like[]
 
   @@map("posts")
 }
 
 model Comment {
-  commentId     Int         @id @default(autoincrement()) @map("comment_id")
-  userId        Int         @map("user_id")
-  postId        Int         @map("post_id")
-  content       String      @map("content")
-  createdAt     DateTime    @default(now()) @map("created_at")
-  updatedAt     DateTime    @updatedAt @map("updated_at")
+  commentId Int      @id @default(autoincrement()) @map("comment_id")
+  userId    Int      @map("user_id")
+  postId    Int      @map("post_id")
+  content   String   @map("content")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  user          User        @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  post          Post        @relation(fields: [postId], references: [postId], onDelete: Cascade)
-  like          Like[]
+  user User   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  post Post   @relation(fields: [postId], references: [postId], onDelete: Cascade)
+  like Like[]
 
   @@map("comments")
 }
 
 model Like {
-  likeId        BigInt      @id @default(autoincrement()) @map("like_id")
-  userId        Int         @map("user_id")
-  postId        Int         @map("post_id")
-  commentId     Int?        @map("comment_id")
-  createdAt     DateTime    @default(now()) @map("created_at")
+  likeId    BigInt   @id @default(autoincrement()) @map("like_id")
+  userId    Int      @map("user_id")
+  postId    Int      @map("post_id")
+  commentId Int?     @map("comment_id")
+  createdAt DateTime @default(now()) @map("created_at")
 
-  user          User        @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  post          Post        @relation(fields: [postId], references: [postId], onDelete: Cascade)
-  comment       Comment?    @relation(fields: [commentId], references: [commentId], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  post    Post     @relation(fields: [postId], references: [postId], onDelete: Cascade)
+  comment Comment? @relation(fields: [commentId], references: [commentId], onDelete: Cascade)
 
   @@map("likes")
 }

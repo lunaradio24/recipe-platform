@@ -4,6 +4,7 @@ import { SERVER_PORT } from './constants/env.constant.js';
 import { HTTP_STATUS } from './constants/http-status.constant.js';
 import { apiRouter } from './routers/index.js';
 
+
 const app = express();
 
 app.use(express.json());
