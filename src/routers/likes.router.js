@@ -4,7 +4,7 @@ import { HTTP_STATUS } from '../constants/http-status.constant.js';
 
 const likeRouter = express.Router();
 
-// 특정 게시글 좋아요 클릭 및 취소 API <<< TODO: AccessToken 인증 미들웨어 거쳐야함
+// 특정 게시글에 좋아요 클릭 및 취소 API <<< TODO: AccessToken 인증 미들웨어 거쳐야함
 likeRouter.put('/:postId/likes', async (req, res, next) => {
   try {
     const { userId } = req.user;
@@ -23,17 +23,16 @@ likeRouter.put('/:postId/likes', async (req, res, next) => {
     }
 
     // likes 테이블에서 해당 유저가 해당 게시글에 남긴 좋아요를 검색
-    const like = await prisma.like.findUnique({
+    const like = await prisma.postLike.findUnique({
       where: {
         userId: userId,
         postId: +postId,
-        commentId: null,
       },
     });
 
     // 없으면 좋아요 생성
     if (!like) {
-      await prisma.like.create({
+      await prisma.postLike.create({
         data: {
           userId: userId,
           postId: +postId,
@@ -43,7 +42,7 @@ likeRouter.put('/:postId/likes', async (req, res, next) => {
 
     // 있으면 좋아요 삭제
     else {
-      await prisma.like.delete({
+      await prisma.postLike.delete({
         where: {
           userId: userId,
           postId: +postId,
@@ -63,39 +62,15 @@ likeRouter.put('/:postId/likes', async (req, res, next) => {
   }
 });
 
-// 전체 게시글 좋아요 조회 API
-likeRouter.get('/likes', async (req, res, next) => {
-  try {
-    // likes 테이블에서 모든 posts의 좋아요 검색
-    const likes = await prisma.like.findMany({
-      where: {
-        commentId: null,
-      },
-    });
-
-    // 반환 정보
-    return res.status(HTTP_STATUS.OK).json({
-      status: HTTP_STATUS.OK,
-      message: '전체 게시글의 좋아요 정보를 성공적으로 불러왔습니다.',
-      data: likes,
-    });
-
-    // 에러 처리
-  } catch (error) {
-    next(error);
-  }
-});
-
-// 특정 게시글 좋아요 조회 API
+// 특정 게시글의 좋아요 조회 API
 likeRouter.get('/:postId/likes', async (req, res, next) => {
   try {
     const { postId } = req.params;
 
     // likes 테이블에서 특정 posts의 좋아요 검색
-    const likes = await prisma.like.findMany({
+    const likes = await prisma.postLike.findMany({
       where: {
         postId: +postId,
-        commentId: null,
       },
     });
 
@@ -112,11 +87,11 @@ likeRouter.get('/:postId/likes', async (req, res, next) => {
   }
 });
 
-// 댓글 좋아요 클릭 및 취소 API <<< TODO: AccessToken 인증 미들웨어 거쳐야함
+// 특정 댓글에 좋아요 클릭 및 취소 API <<< TODO: AccessToken 인증 미들웨어 거쳐야함
 likeRouter.put('/:postId/comments/:commentId/likes', async (req, res, next) => {
   try {
     const { userId } = req.user;
-    const { postId, commentId } = req.params;
+    const { commentId } = req.params;
 
     // 해당 댓글의 작성자 id 가져오기
     const { userId: commenterId } = await prisma.comment.findUnique({
@@ -131,20 +106,18 @@ likeRouter.put('/:postId/comments/:commentId/likes', async (req, res, next) => {
     }
 
     // likes 테이블에서 해당 유저가 해당 댓글에 남긴 좋아요를 검색
-    const like = await prisma.like.findUnique({
+    const like = await prisma.commentLike.findUnique({
       where: {
         userId: userId,
-        postId: +postId,
         commentId: +commentId,
       },
     });
 
     // 없으면 좋아요 생성
     if (!like) {
-      await prisma.like.create({
+      await prisma.commentLike.create({
         data: {
           userId: userId,
-          postId: +postId,
           commentId: +commentId,
         },
       });
@@ -152,10 +125,9 @@ likeRouter.put('/:postId/comments/:commentId/likes', async (req, res, next) => {
 
     // 있으면 좋아요 삭제
     if (like) {
-      await prisma.like.delete({
+      await prisma.commentLike.delete({
         where: {
           userId: userId,
-          postId: +postId,
           commentId: +commentId,
         },
       });
@@ -173,25 +145,22 @@ likeRouter.put('/:postId/comments/:commentId/likes', async (req, res, next) => {
   }
 });
 
-// 특정 게시글의 모든 댓글 좋아요 조회 API
-likeRouter.get('/:postId/comments/likes', async (req, res, next) => {
+// 특정 댓글의 좋아요 조회 API
+likeRouter.get('/:postId/comments/:commentId/likes', async (req, res, next) => {
   try {
-    const { postId } = req.params;
+    const { commentId } = req.params;
 
-    // likes 테이블에서 해당 posts의 모든 댓글의 좋아요 검색
-    const likes = await prisma.like.findMany({
+    // likes 테이블에서 해당 댓글의 좋아요 검색
+    const likes = await prisma.commentLike.findMany({
       where: {
-        postId: +postId,
-        commentId: {
-          not: null,
-        },
+        commentId: +commentId,
       },
     });
 
     // 반환 정보
     return res.status(HTTP_STATUS.OK).json({
       status: HTTP_STATUS.OK,
-      message: '해당 게시글의 모든 댓글 좋아요 정보를 성공적으로 불러왔습니다.',
+      message: '해당 댓글의 좋아요 정보를 성공적으로 불러왔습니다.',
       data: likes,
     });
 
