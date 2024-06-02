@@ -28,7 +28,7 @@ model User {
 
 model Post {
   postId        Int           @id @default(autoincrement()) @map("post_id")
-  userId        Int           @map("user_id")
+  authorId      Int           @map("author_id")
   title         String        @map("title")
   content       String        @db.Text @map("content")
   imageUrl      String?       @map("image_url")
@@ -36,7 +36,7 @@ model Post {
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
-  user          User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  user          User          @relation(fields: [authorId], references: [userId], onDelete: Cascade)
   comment       Comment[]
   postLike      PostLike[]
 
@@ -45,14 +45,14 @@ model Post {
 
 model Comment {
   commentId     Int           @id @default(autoincrement()) @map("comment_id")
-  userId        Int           @map("user_id")
+  commenterId   Int           @map("commenter_id")
   postId        Int           @map("post_id")
   content       String        @map("content")
   like_count    Int           @default(0) @map("like_count")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
-  user          User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  user          User          @relation(fields: [commenterId], references: [userId], onDelete: Cascade)
   post          Post          @relation(fields: [postId], references: [postId], onDelete: Cascade)
   commentLike   CommentLike[]
 

@@ -4,7 +4,7 @@ import { HTTP_STATUS } from '../constants/http-status.constant.js';
 
 const likeRouter = express.Router();
 
-// 특정 게시글에 좋아요 클릭 및 취소 API <<< TODO: AccessToken 인증 미들웨어 거쳐야함
+// 게시글에 좋아요/취소 API <<< TODO: AccessToken 인증 미들웨어 거쳐야함
 likeRouter.put('/:postId/likes', async (req, res, next) => {
   try {
     const { userId } = req.user;
@@ -62,7 +62,7 @@ likeRouter.put('/:postId/likes', async (req, res, next) => {
   }
 });
 
-// 특정 게시글의 좋아요 조회 API
+// 게시글의 좋아요 조회 API
 likeRouter.get('/:postId/likes', async (req, res, next) => {
   try {
     const { postId } = req.params;
@@ -87,7 +87,7 @@ likeRouter.get('/:postId/likes', async (req, res, next) => {
   }
 });
 
-// 특정 댓글에 좋아요 클릭 및 취소 API <<< TODO: AccessToken 인증 미들웨어 거쳐야함
+// 댓글에 좋아요/취소 API <<< TODO: AccessToken 인증 미들웨어 거쳐야함
 likeRouter.put('/:postId/comments/:commentId/likes', async (req, res, next) => {
   try {
     const { userId } = req.user;
@@ -145,7 +145,7 @@ likeRouter.put('/:postId/comments/:commentId/likes', async (req, res, next) => {
   }
 });
 
-// 특정 댓글의 좋아요 조회 API
+// 댓글의 좋아요 조회 API
 likeRouter.get('/:postId/comments/:commentId/likes', async (req, res, next) => {
   try {
     const { commentId } = req.params;
