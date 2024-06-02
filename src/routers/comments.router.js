@@ -24,8 +24,8 @@ commentRouter.post('/:postId/comments', commentValidator, async (req, res, next)
 
     const comment = await prisma.comment.create({
       data: {
+        commenterId: userId,
         postId: +postId,
-        userId,
         content,
       },
     });
@@ -64,6 +64,7 @@ commentRouter.get('/:postId/comments', async (req, res, next) => {
         username: comment.user.username,
         profileImage: comment.user.profileImage,
         content: comment.content,
+        likeCount: comment.likeCount,
         createdAt: comment.createdAt,
         updatedAt: comment.updatedAt,
       };
@@ -84,7 +85,9 @@ commentRouter.patch('/:postId/comments/:commentId', commentValidator, async (req
     const { commentId } = req.params;
     const { content } = req.body;
 
-    const comment = await prisma.comment.findFirst({ where: { userId, commentId: +commentId } });
+    const comment = await prisma.comment.findFirst({
+      where: { commenterId: userId, commentId: +commentId },
+    });
 
     if (!comment) {
       return res
@@ -93,7 +96,7 @@ commentRouter.patch('/:postId/comments/:commentId', commentValidator, async (req
     }
 
     const updatedComment = await prisma.comment.update({
-      where: { userId, commentId: +commentId },
+      where: { commenterId: userId, commentId: +commentId },
       data: { content },
     });
 
@@ -113,7 +116,9 @@ commentRouter.delete('/:postId/comments/:commentId', async (req, res, next) => {
     const userId = 1;
     const { commentId } = req.params;
 
-    const comment = await prisma.comment.findUnique({ where: { userId, commentId: +commentId } });
+    const comment = await prisma.comment.findUnique({
+      where: { commenterId: userId, commentId: +commentId },
+    });
 
     if (!comment) {
       return res
@@ -121,7 +126,9 @@ commentRouter.delete('/:postId/comments/:commentId', async (req, res, next) => {
         .json({ status: HTTP_STATUS.NOT_FOUND, message: '존재하지 않는 댓글입니다.' });
     }
 
-    await prisma.comment.delete({ where: { userId, commentId: +commentId } });
+    await prisma.comment.delete({
+      where: { commenterId: userId, commentId: +commentId },
+    });
 
     return res.status(HTTP_STATUS.OK).json({ status: HTTP_STATUS.OK, message: `${commentId}번 댓글을 삭제했습니다.` });
   } catch (error) {
