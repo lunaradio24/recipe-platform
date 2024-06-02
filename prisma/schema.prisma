@@ -19,7 +19,8 @@ model User {
 
   post          Post[]
   comment       Comment[]
-  like          Like[]
+  postLike      PostLike[]
+  commentLike   CommentLike[]
   refreshToken  RefreshToken?
 
   @@map("users")
@@ -36,7 +37,7 @@ model Post {
 
   user          User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
   comment       Comment[]
-  like          Like[]
+  postLike      PostLike[]
 
   @@map("posts")
 }
@@ -51,23 +52,31 @@ model Comment {
 
   user          User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
   post          Post          @relation(fields: [postId], references: [postId], onDelete: Cascade)
-  like          Like[]
+  commentLike   CommentLike[]
 
   @@map("comments")
 }
 
-model Like {
-  likeId        BigInt        @id @default(autoincrement()) @map("like_id")
+model PostLike {
+  id            BigInt        @id @default(autoincrement()) @map("id")
   userId        Int           @map("user_id")
   postId        Int           @map("post_id")
-  commentId     Int?          @map("comment_id")
-  createdAt     DateTime      @default(now()) @map("created_at")
 
   user          User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
   post          Post          @relation(fields: [postId], references: [postId], onDelete: Cascade)
-  comment       Comment?      @relation(fields: [commentId], references: [commentId], onDelete: Cascade)
 
-  @@map("likes")
+  @@map("post_likes")
+}
+
+model CommentLike {
+  id            BigInt        @id @default(autoincrement()) @map("id")
+  userId        Int           @map("user_id")
+  commentId     Int           @map("comment_id")
+
+  user          User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  comment       Comment       @relation(fields: [commentId], references: [commentId], onDelete: Cascade)
+
+  @@map("comment_likes")
 }
 
 model RefreshToken {
