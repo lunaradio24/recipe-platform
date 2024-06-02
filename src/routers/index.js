@@ -9,8 +9,6 @@ const apiRouter = express.Router();
 
 apiRouter.use('/auth', authRouter);
 apiRouter.use('/users', userRouter);
-apiRouter.use('/posts', postRouter);
-apiRouter.use('/posts/:postId/comments', commentRouter);
-apiRouter.use('/posts', likeRouter);
+apiRouter.use('/posts', [postRouter, commentRouter, likeRouter]);
 
 export { apiRouter };
