@@ -42,7 +42,7 @@ likeRouter.put('/:postId/likes', async (req, res, next) => {
     }
 
     // 있으면 좋아요 삭제
-    if (like) {
+    else {
       await prisma.like.delete({
         where: {
           userId: userId,
