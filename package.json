@@ -1,7 +1,7 @@
 {
   "name": "recipe-platform",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "./src/app.js",
   "repository": "https://github.com/lunaradio24/recipe-platform.git",
   "license": "MIT",
   "type": "module",
