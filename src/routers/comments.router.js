@@ -86,13 +86,19 @@ commentRouter.patch('/:postId/comments/:commentId', commentValidator, async (req
     const { content } = req.body;
 
     const comment = await prisma.comment.findFirst({
-      where: { commenterId: userId, commentId: +commentId },
+      where: { commentId: +commentId },
     });
 
     if (!comment) {
       return res
         .status(HTTP_STATUS.NOT_FOUND)
         .json({ status: HTTP_STATUS.NOT_FOUND, message: '존재하지 않는 댓글입니다.' });
+    }
+
+    if (userId !== comment.commenterId) {
+      return res
+        .status(HTTP_STATUS.FORBIDDEN)
+        .json({ status: HTTP_STATUS.FORBIDDEN, message: '수정 권한이 없는 댓글입니다.' });
     }
 
     const updatedComment = await prisma.comment.update({
@@ -117,13 +123,19 @@ commentRouter.delete('/:postId/comments/:commentId', async (req, res, next) => {
     const { commentId } = req.params;
 
     const comment = await prisma.comment.findUnique({
-      where: { commenterId: userId, commentId: +commentId },
+      where: { commentId: +commentId },
     });
 
     if (!comment) {
       return res
         .status(HTTP_STATUS.NOT_FOUND)
         .json({ status: HTTP_STATUS.NOT_FOUND, message: '존재하지 않는 댓글입니다.' });
+    }
+
+    if (userId !== comment.commenterId) {
+      return res
+        .status(HTTP_STATUS.FORBIDDEN)
+        .json({ status: HTTP_STATUS.FORBIDDEN, message: '삭제 권한이 없는 댓글입니다.' });
     }
 
     await prisma.comment.delete({
