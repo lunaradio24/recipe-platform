@@ -3,6 +3,7 @@ import { prisma } from '../utils/prisma.util.js';
 import { commentValidator } from '../middlewares/validators/comment-validator.middleware.js';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
 import { authenticateToken } from '../middlewares/require-access-token.middleware.js';
+import CustomError from '../utils/custom-error.util.js';
 
 const commentRouter = express.Router();
 
@@ -10,17 +11,13 @@ const commentRouter = express.Router();
 commentRouter.post('/:postId/comments', authenticateToken, commentValidator, async (req, res, next) => {
   try {
     const { userId } = req.user;
-    //테스트용 유저 아이디
-    // const userId = 1;
     const { postId } = req.params;
     const { content } = req.body;
 
     const post = await prisma.post.findFirst({ where: { postId: +postId } });
 
     if (!post) {
-      return res
-        .status(HTTP_STATUS.NOT_FOUND)
-        .json({ status: HTTP_STATUS.NOT_FOUND, message: '존재하지 않는 게시글입니다.' });
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 게시글입니다.');
     }
 
     const comment = await prisma.comment.create({
@@ -46,9 +43,7 @@ commentRouter.get('/:postId/comments', async (req, res, next) => {
 
     const post = await prisma.post.findFirst({ where: { postId: +postId } });
     if (!post) {
-      return res
-        .status(HTTP_STATUS.NOT_FOUND)
-        .json({ status: HTTP_STATUS.NOT_FOUND, message: '존재하지 않는 게시글입니다.' });
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 게시글입니다.');
     }
 
     let comments = await prisma.comment.findMany({
@@ -71,7 +66,11 @@ commentRouter.get('/:postId/comments', async (req, res, next) => {
       };
     });
 
-    return res.status(HTTP_STATUS.OK).json({ status: HTTP_STATUS.OK, message: `${postId}번 게시글 댓글.`, comments });
+    return res.status(HTTP_STATUS.OK).json({
+      status: HTTP_STATUS.OK,
+      message: `${postId}번 게시글 댓글.`,
+      comments,
+    });
   } catch (error) {
     next(error);
   }
@@ -81,8 +80,6 @@ commentRouter.get('/:postId/comments', async (req, res, next) => {
 commentRouter.patch('/:postId/comments/:commentId', authenticateToken, commentValidator, async (req, res, next) => {
   try {
     const { userId } = req.user;
-    //테스트용 유저 아이디
-    // const userId = 1;
     const { commentId } = req.params;
     const { content } = req.body;
 
@@ -91,15 +88,11 @@ commentRouter.patch('/:postId/comments/:commentId', authenticateToken, commentVa
     });
 
     if (!comment) {
-      return res
-        .status(HTTP_STATUS.NOT_FOUND)
-        .json({ status: HTTP_STATUS.NOT_FOUND, message: '존재하지 않는 댓글입니다.' });
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 댓글입니다.');
     }
 
     if (userId !== comment.commenterId) {
-      return res
-        .status(HTTP_STATUS.FORBIDDEN)
-        .json({ status: HTTP_STATUS.FORBIDDEN, message: '수정 권한이 없는 댓글입니다.' });
+      throw new CustomError(HTTP_STATUS.FORBIDDEN, '수정 권한이 없는 댓글입니다.');
     }
 
     const updatedComment = await prisma.comment.update({
@@ -119,8 +112,6 @@ commentRouter.patch('/:postId/comments/:commentId', authenticateToken, commentVa
 commentRouter.delete('/:postId/comments/:commentId', authenticateToken, async (req, res, next) => {
   try {
     const { userId } = req.user;
-    // 테스트용 유저 아이디
-    // const userId = 1;
     const { commentId } = req.params;
 
     const comment = await prisma.comment.findUnique({
@@ -128,22 +119,21 @@ commentRouter.delete('/:postId/comments/:commentId', authenticateToken, async (r
     });
 
     if (!comment) {
-      return res
-        .status(HTTP_STATUS.NOT_FOUND)
-        .json({ status: HTTP_STATUS.NOT_FOUND, message: '존재하지 않는 댓글입니다.' });
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 댓글입니다.');
     }
 
     if (userId !== comment.commenterId) {
-      return res
-        .status(HTTP_STATUS.FORBIDDEN)
-        .json({ status: HTTP_STATUS.FORBIDDEN, message: '삭제 권한이 없는 댓글입니다.' });
+      throw new CustomError(HTTP_STATUS.FORBIDDEN, '삭제 권한이 없는 댓글입니다.');
     }
 
     await prisma.comment.delete({
       where: { commenterId: userId, commentId: +commentId },
     });
 
-    return res.status(HTTP_STATUS.OK).json({ status: HTTP_STATUS.OK, message: `${commentId}번 댓글을 삭제했습니다.` });
+    return res.status(HTTP_STATUS.OK).json({
+      status: HTTP_STATUS.OK,
+      message: `${commentId}번 댓글을 삭제했습니다.`,
+    });
   } catch (error) {
     next(error);
   }
