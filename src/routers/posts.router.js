@@ -2,6 +2,7 @@ import express from 'express';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
 import { postValidator } from '../middlewares/validators/post-validator.middleware.js';
 import { prisma } from '../utils/prisma.util.js';
+import CustomError from '../utils/custom-error.util.js';
 
 const postRouter = express.Router();
 
