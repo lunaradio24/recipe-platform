@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
 import { prisma } from '../utils/prisma.util.js';
 import bcrypt from 'bcrypt';
 
-dotenv.config();
+import {JWT_REFRESH_KEY} from '../constants/auth.constant.js';
+
 
 const jwtRefresh = process.env.JWT_REFRESH;
 
@@ -29,7 +29,7 @@ export const authenticateRefreshToken = async (req, res, next) => {
     let payload;
 
     try {
-      payload = jwt.verify(refreshToken, jwtRefresh);
+      payload = jwt.verify(refreshToken, JWT_REFRESH_KEY);
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
         return res.status(HTTP_STATUS.UNAUTHORIZED).json({
