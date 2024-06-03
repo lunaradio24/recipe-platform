@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["omitApi"]
 }
 
 datasource db {
@@ -13,27 +14,19 @@ model User {
   password     String   @map("password")
   username     String   @map("username")
   profileImage String?  @map("profile_image")
-  introduction String?  @map("introduction")
+  introduction String?  @map("one_liner")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   post          Post[]
   comment       Comment[]
   like          Like[]
-  refreshTokens RefreshToken[] 
+  refreshTokens RefreshToken?
 
   @@map("users")
 }
 
-model RefreshToken {
-  id        Int      @id @default(autoincrement()) @map("id")
-  userId    Int      @map("userId")
-  token     String   @unique @map("token")
-  createdAt DateTime @default(now()) @map("createdAt")
-  user      User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
-  @@map("RefreshTokens")
-}
 
 model Post {
   postId    Int      @id @default(autoincrement()) @map("post_id")
@@ -78,4 +71,15 @@ model Like {
   comment Comment? @relation(fields: [commentId], references: [commentId], onDelete: Cascade)
 
   @@map("likes")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement()) @map("token_id")
+  userId    Int      @unique @map("user_Id") // userId를 고유 값으로 설정
+  token     String?   @map("refresh_token")
+  createdAt DateTime @default(now()) @map("create_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("RefreshTokens")
 }
