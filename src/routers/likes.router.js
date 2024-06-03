@@ -13,7 +13,7 @@ likeRouter.put('/:postId/likes', async (req, res, next) => {
     const { postId } = req.params;
 
     // 해당 게시글 가져오기
-    const post = await prisma.post.findUnique({
+    const post = await prisma.post.findFirst({
       where: { postId: +postId },
     });
 
@@ -21,7 +21,7 @@ likeRouter.put('/:postId/likes', async (req, res, next) => {
     if (!post) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({
         status: HTTP_STATUS.NOT_FOUND,
-        message: '해당 게시글이 존재하지 않습니다.',
+        message: '존재하지 않는 게시글입니다.',
       });
     }
 
@@ -34,7 +34,7 @@ likeRouter.put('/:postId/likes', async (req, res, next) => {
     }
 
     // post_likes 테이블에서 해당 유저가 해당 게시글에 남긴 좋아요를 검색
-    const like = await prisma.postLike.findUnique({
+    const like = await prisma.postLike.findFirst({
       where: {
         userId: userId,
         postId: +postId,
@@ -71,7 +71,7 @@ likeRouter.put('/:postId/likes', async (req, res, next) => {
         async (txn) => {
           // post_likes 테이블에서 데이터 삭제
           await txn.postLike.delete({
-            data: {
+            where: {
               userId: userId,
               postId: +postId,
             },
@@ -90,8 +90,8 @@ likeRouter.put('/:postId/likes', async (req, res, next) => {
     }
 
     // 반환 정보
-    return res.status(HTTP_STATUS.CREATED).json({
-      status: HTTP_STATUS.CREATED,
+    return res.status(HTTP_STATUS.OK).json({
+      status: HTTP_STATUS.OK,
       message: `게시글에 좋아요를 ${like ? '눌렀' : '취소했'}습니다`,
     });
 
@@ -107,7 +107,7 @@ likeRouter.get('/:postId/likes', async (req, res, next) => {
     const { postId } = req.params;
 
     // 해당 게시글 가져오기
-    const post = await prisma.post.findUnique({
+    const post = await prisma.post.findFirst({
       where: { postId: +postId },
     });
 
@@ -115,7 +115,7 @@ likeRouter.get('/:postId/likes', async (req, res, next) => {
     if (!post) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({
         status: HTTP_STATUS.NOT_FOUND,
-        message: '해당 게시글이 존재하지 않습니다.',
+        message: '존재하지 않는 게시글입니다.',
       });
     }
 
@@ -140,11 +140,12 @@ likeRouter.get('/:postId/likes', async (req, res, next) => {
 // 댓글에 좋아요/취소 API <<< TODO: AccessToken 인증 미들웨어 거쳐야함
 likeRouter.put('/:postId/comments/:commentId/likes', async (req, res, next) => {
   try {
-    const { userId } = req.user;
+    const userId = 1; //테스트용
+    // const { userId } = req.user;
     const { commentId } = req.params;
 
     // 해당 댓글 가져오기
-    const comment = await prisma.comment.findUnique({
+    const comment = await prisma.comment.findFirst({
       where: { commentId: +commentId },
     });
 
@@ -152,7 +153,7 @@ likeRouter.put('/:postId/comments/:commentId/likes', async (req, res, next) => {
     if (!comment) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({
         status: HTTP_STATUS.NOT_FOUND,
-        message: '해당 댓글이 존재하지 않습니다.',
+        message: '존재하지 않는 댓글입니다.',
       });
     }
 
@@ -165,7 +166,7 @@ likeRouter.put('/:postId/comments/:commentId/likes', async (req, res, next) => {
     }
 
     // comment_likes 테이블에서 해당 유저가 해당 댓글에 남긴 좋아요를 검색
-    const like = await prisma.commentLike.findUnique({
+    const like = await prisma.commentLike.findFirst({
       where: {
         userId: userId,
         commentId: +commentId,
@@ -184,7 +185,7 @@ likeRouter.put('/:postId/comments/:commentId/likes', async (req, res, next) => {
             },
           });
           // comments 테이블의 해당 comment의 like_count를 +1
-          await txn.post.update({
+          await txn.comment.update({
             where: { commentId: +commentId },
             data: { likeCount: comment.likeCount + 1 },
           });
@@ -197,18 +198,17 @@ likeRouter.put('/:postId/comments/:commentId/likes', async (req, res, next) => {
     }
 
     // 있으면 좋아요 취소
-    if (like) {
+    else {
       await prisma.$transaction(
         async (txn) => {
           // comment_likes 테이블에서 데이터 삭제
           await txn.commentLike.delete({
-            data: {
-              userId: userId,
-              commentId: +commentId,
+            where: {
+              comment_like_id: like.comment_like_id,
             },
           });
           // comments 테이블의 해당 comment의 like_count를 -1
-          await txn.post.update({
+          await txn.comment.update({
             where: { commentId: +commentId },
             data: { likeCount: comment.likeCount - 1 },
           });
@@ -238,7 +238,7 @@ likeRouter.get('/:postId/comments/:commentId/likes', async (req, res, next) => {
     const { commentId } = req.params;
 
     // 해당 댓글 가져오기
-    const comment = await prisma.comment.findUnique({
+    const comment = await prisma.comment.findFirst({
       where: { commentId: +commentId },
     });
 
@@ -254,6 +254,7 @@ likeRouter.get('/:postId/comments/:commentId/likes', async (req, res, next) => {
     const likes = await prisma.commentLike.findMany({
       where: { commentId: +commentId },
     });
+    console.log(likes);
 
     // 반환 정보
     return res.status(HTTP_STATUS.OK).json({
