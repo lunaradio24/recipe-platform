@@ -9,10 +9,7 @@ const followRouter = express.Router();
 //팔로우 api
 followRouter.post('/:userId/follow', authenticateToken, async (req, res, next) => {
   try {
-    const followerId = req.user.userId;
-    //테스트용 팔로워 아이디
-    const followerUserId = 3;
-
+    const followerUserId = req.user.userId;
     const { userId } = req.params;
 
     // 팔로우 할 user가 자신(follower)과 같은지 확인
