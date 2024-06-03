@@ -32,7 +32,7 @@ model Post {
   title         String        @map("title")
   content       String        @db.Text @map("content")
   imageUrl      String?       @map("image_url")
-  likeCount    Int           @default(0) @map("like_count")
+  likeCount     Int           @default(0) @map("like_count")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
@@ -48,7 +48,7 @@ model Comment {
   commenterId   Int           @map("commenter_id")
   postId        Int           @map("post_id")
   content       String        @map("content")
-  likeCount    Int           @default(0) @map("like_count")
+  likeCount     Int           @default(0) @map("like_count")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
@@ -60,9 +60,10 @@ model Comment {
 }
 
 model PostLike {
-  post_like_id      BigInt        @id @default(autoincrement()) @map("id")
+  post_like_id      BigInt        @id @default(autoincrement()) @map("post_like_id")
   userId            Int           @map("user_id")
   postId            Int           @map("post_id")
+  createdAt         DateTime      @default(now()) @map("created_at")
 
   user              User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
   post              Post          @relation(fields: [postId], references: [postId], onDelete: Cascade)
@@ -71,9 +72,10 @@ model PostLike {
 }
 
 model CommentLike {
-  comment_like_id   BigInt        @id @default(autoincrement()) @map("id")
+  comment_like_id   BigInt        @id @default(autoincrement()) @map("comment_like_id")
   userId            Int           @map("user_id")
   commentId         Int           @map("comment_id")
+  createdAt         DateTime      @default(now()) @map("created_at")
 
   user              User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
   comment           Comment       @relation(fields: [commentId], references: [commentId], onDelete: Cascade)
