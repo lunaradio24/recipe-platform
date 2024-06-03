@@ -8,87 +8,88 @@ datasource db {
 }
 
 model User {
-  userId          Int           @id @default(autoincrement()) @map("user_id")
-  email           String        @unique @map("email")
-  password        String        @map("password")
-  username        String        @map("username")
-  profileImage    String?       @map("profile_image")
-  introduction    String?       @map("introduction")
-  createdAt       DateTime      @default(now()) @map("created_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
+  userId       Int      @id @default(autoincrement()) @map("user_id")
+  email        String   @unique @map("email")
+  password     String   @map("password")
+  username     String   @map("username")
+  profileImage String?  @map("profile_image")
+  introduction String?  @map("introduction")
+  followCount  Int      @default(0) @map("follow_count")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  post            Post[]
-  comment         Comment[]
-  postLike        PostLike[]
-  commentLike     CommentLike[]
-  refreshToken    RefreshToken?
+  post         Post[]
+  comment      Comment[]
+  postLike     PostLike[]
+  commentLike  CommentLike[]
+  refreshToken RefreshToken?
 
   @@map("users")
 }
 
 model Post {
-  postId        Int           @id @default(autoincrement()) @map("post_id")
-  authorId      Int           @map("author_id")
-  title         String        @map("title")
-  content       String        @db.Text @map("content")
-  imageUrl      String?       @map("image_url")
-  likeCount    Int           @default(0) @map("like_count")
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
+  postId    Int      @id @default(autoincrement()) @map("post_id")
+  authorId  Int      @map("author_id")
+  title     String   @map("title")
+  content   String   @map("content") @db.Text
+  imageUrl  String?  @map("image_url")
+  likeCount Int      @default(0) @map("like_count")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  user          User          @relation(fields: [authorId], references: [userId], onDelete: Cascade)
-  comment       Comment[]
-  postLike      PostLike[]
+  user     User       @relation(fields: [authorId], references: [userId], onDelete: Cascade)
+  comment  Comment[]
+  postLike PostLike[]
 
   @@map("posts")
 }
 
 model Comment {
-  commentId     Int           @id @default(autoincrement()) @map("comment_id")
-  commenterId   Int           @map("commenter_id")
-  postId        Int           @map("post_id")
-  content       String        @map("content")
-  likeCount    Int           @default(0) @map("like_count")
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
+  commentId   Int      @id @default(autoincrement()) @map("comment_id")
+  commenterId Int      @map("commenter_id")
+  postId      Int      @map("post_id")
+  content     String   @map("content")
+  likeCount   Int      @default(0) @map("like_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  user          User          @relation(fields: [commenterId], references: [userId], onDelete: Cascade)
-  post          Post          @relation(fields: [postId], references: [postId], onDelete: Cascade)
-  commentLike   CommentLike[]
+  user        User          @relation(fields: [commenterId], references: [userId], onDelete: Cascade)
+  post        Post          @relation(fields: [postId], references: [postId], onDelete: Cascade)
+  commentLike CommentLike[]
 
   @@map("comments")
 }
 
 model PostLike {
-  post_like_id      BigInt        @id @default(autoincrement()) @map("id")
-  userId            Int           @map("user_id")
-  postId            Int           @map("post_id")
+  post_like_id BigInt @id @default(autoincrement()) @map("id")
+  userId       Int    @map("user_id")
+  postId       Int    @map("post_id")
 
-  user              User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  post              Post          @relation(fields: [postId], references: [postId], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [postId], onDelete: Cascade)
 
   @@map("post_likes")
 }
 
 model CommentLike {
-  comment_like_id   BigInt        @id @default(autoincrement()) @map("id")
-  userId            Int           @map("user_id")
-  commentId         Int           @map("comment_id")
+  comment_like_id BigInt @id @default(autoincrement()) @map("id")
+  userId          Int    @map("user_id")
+  commentId       Int    @map("comment_id")
 
-  user              User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  comment           Comment       @relation(fields: [commentId], references: [commentId], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [commentId], onDelete: Cascade)
 
   @@map("comment_likes")
 }
 
 model RefreshToken {
-  tokenId           Int           @id @default(autoincrement()) @map("token_id")
-  userId            Int           @unique @map("user_id")
-  refreshToken      String        @map("refresh_token")
-  createdAt         DateTime      @default(now()) @map("created_at")
-  updatedAt         DateTime      @updatedAt @map("updated_at")
+  tokenId      Int      @id @default(autoincrement()) @map("token_id")
+  userId       Int      @unique @map("user_id")
+  refreshToken String   @map("refresh_token")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  user              User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("refresh_tokens")
 }

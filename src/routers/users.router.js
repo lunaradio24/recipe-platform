@@ -37,7 +37,7 @@ userRouter.get('/users', async (req, res, next) => {
           username: user.username,
           profileImage: user.profileImage,
           introduction: user.introduction,
-          followerCount: user.followers.length,
+          followCount: user.followCount,
           createdAt: comment.createdAt,
           updatedAt: comment.updatedAt,
         };
