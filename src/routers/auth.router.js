@@ -18,10 +18,7 @@ import {
   PASSWORD_MIN_LENGTH,
 } from '../constants/auth.constant.js';
 
-
 const authRouter = express.Router();
-
-
 
 const transporter = nodemailer.createTransport({
   service: 'Gmail',
@@ -30,7 +27,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
-
 
 // 회원가입 api
 authRouter.post('/sign-up', async (req, res, next) => {
@@ -47,15 +43,12 @@ authRouter.post('/sign-up', async (req, res, next) => {
     }
 
     if (password.length < PASSWORD_MIN_LENGTH) {
-
       throw new CustomError(HTTP_STATUS.BAD_REQUEST, `비밀번호는 ${PASSWORD_MIN_LENGTH}자리 이상이어야 합니다.`);
-
     }
 
     if (password !== confirmPassword) {
       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '입력한 두 비밀번호가 일치하지 않습니다.');
     }
-
 
     const emailVerificationToken = jwt.sign({ email }, jwtSecret, { expiresIn: '1h' });
 
@@ -65,7 +58,6 @@ authRouter.post('/sign-up', async (req, res, next) => {
 
     // 비밀번호 해시화
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-
 
     const newUser = await prisma.user.create({
       data: {
@@ -112,19 +104,15 @@ authRouter.post('/sign-in', async (req, res, next) => {
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user || !bcrypt.compareSync(password, user.password)) {
-
       throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '인증정보가 유효하지 않습니다.');
-
     }
 
     const payload = { userId: user.userId };
-
 
     const accessToken = jwt.sign(payload, JWT_ACCESS_KEY, { expiresIn: '3h' });
     const refreshToken = jwt.sign(payload, JWT_REFRESH_KEY, { expiresIn: '7d' });
 
     const hashedRefreshToken = bcrypt.hashSync(refreshToken, SALT_ROUNDS);
-
 
     await prisma.refreshToken.upsert({
       where: { userId: user.userId },
@@ -134,7 +122,6 @@ authRouter.post('/sign-in', async (req, res, next) => {
         userId: user.userId,
         token: hashedRefreshToken,
       },
-
     });
 
     return res.status(HTTP_STATUS.OK).json({
@@ -159,7 +146,6 @@ authRouter.get('/user', authenticateToken, (req, res) => {
     });
   } catch (error) {
     next(error);
-
   }
 });
 
@@ -169,14 +155,11 @@ authRouter.post('/renew-tokens', authenticateRefreshToken, async (req, res, next
     const user = req.user;
     const payload = { userId: user.userId };
 
-
     // 새로운 accessToken과 refreshToken 생성
     const accessToken = jwt.sign(payload, JWT_ACCESS_KEY, { expiresIn: '3h' });
     const refreshToken = jwt.sign(payload, JWT_REFRESH_KEY, { expiresIn: '7d' });
 
-
     const hashedRefreshToken = bcrypt.hashSync(refreshToken, SALT_ROUNDS);
-
 
     // refreshToken 갱신
     await prisma.refreshToken.upsert({
@@ -209,7 +192,6 @@ authRouter.post('/sign-out', authenticateRefreshToken, async (req, res, next) =>
     return res.status(HTTP_STATUS.OK).json({
       message: '로그아웃이 완료되었습니다.',
       data: { userId: user.userId },
-
     });
   } catch (error) {
     next(error);
@@ -273,13 +255,10 @@ authRouter.get('/profile', authenticateToken, requireEmailVerification, async (r
       },
     });
 
-    });
     // 에러를 다음 미들웨어로 전달
-
   } catch (error) {
     next(error);
   }
 });
-
 
 export { authRouter };

@@ -13,7 +13,7 @@ followRouter.post('/:userId/follow', authenticateToken, async (req, res, next) =
     const { userId } = req.params;
 
     // 팔로우 할 user가 자신(follower)과 같은지 확인
-    if (followerId === +userId) {
+    if (followerUserId === +userId) {
       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '자기 자신을 팔로우할 수 없습니다.');
     }
 
@@ -84,7 +84,7 @@ followRouter.post('/:userId/follow', authenticateToken, async (req, res, next) =
 });
 
 // 팔로워 조회 api
-followRouter.get('/:userId/follow', async (req, res, next) => {
+followRouter.get('/:userId/followers', async (req, res, next) => {
   try {
     const { userId } = req.params;
     // 팔로워 정보를 볼 user가 DB에 있는지 확인
@@ -122,7 +122,7 @@ followRouter.get('/:userId/follow', async (req, res, next) => {
 });
 
 // 팔로잉 조회 api
-followRouter.get('/:userId/follow', async (req, res, next) => {
+followRouter.get('/:userId/followings', async (req, res, next) => {
   try {
     const { userId } = req.params;
     // 팔로잉 정보를 볼 user가 DB에 있는지 조회
@@ -149,7 +149,7 @@ followRouter.get('/:userId/follow', async (req, res, next) => {
     // 반환 정보
     return res.status(HTTP_STATUS.OK).json({
       status: HTTP_STATUS.OK,
-      message: `${user.username}의 팔로워`,
+      message: `${user.username}의 팔로잉 목록`,
       followings,
     });
 
