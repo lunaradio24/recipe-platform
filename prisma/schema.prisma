@@ -9,23 +9,24 @@ datasource db {
 }
 
 model User {
-  userId        Int      @id @default(autoincrement()) @map("user_id")
-  email         String   @unique @map("email")
-  password      String   @map("password")
-  username      String   @map("username")
-  profileImage  String?  @map("profile_image")
-  introduction  String?  @map("introduction")
-  followerCount Int      @default(0) @map("follower_count")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  post         Post[]
-  comment      Comment[]
-  postLike     PostLike[]
-  commentLike  CommentLike[]
-  refreshToken RefreshToken?
-  follow       Follow[]
-  follower     Follow[]      @relation("follower")
+  userId          Int           @id @default(autoincrement()) @map("user_id")
+  email           String        @unique @map("email")
+  password        String        @map("password")
+  username        String        @map("username")
+  profileImage    String?       @map("profile_image")
+  introduction    String?       @map("introduction")
+  followerCount   Int           @default(0) @map("follower_count")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  post            Post[]
+  comment         Comment[]
+  postLike        PostLike[]
+  commentLike     CommentLike[]
+  refreshToken    RefreshToken?
+  following       Follow[]      @relation("following")
+  follower        Follow[]      @relation("follower")
 
   @@map("users")
 }
@@ -64,10 +65,10 @@ model Comment {
 }
 
 model PostLike {
-  post_like_id BigInt   @id @default(autoincrement()) @map("post_like_id")
-  userId       Int      @map("user_id")
-  postId       Int      @map("post_id")
-  createdAt    DateTime @default(now()) @map("created_at")
+  post_like_id      Int           @id @default(autoincrement()) @map("post_like_id")
+  userId            Int           @map("user_id")
+  postId            Int           @map("post_id")
+  createdAt         DateTime      @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
   post Post @relation(fields: [postId], references: [postId], onDelete: Cascade)
@@ -76,10 +77,12 @@ model PostLike {
 }
 
 model CommentLike {
-  comment_like_id BigInt   @id @default(autoincrement()) @map("comment_like_id")
-  userId          Int      @map("user_id")
-  commentId       Int      @map("comment_id")
-  createdAt       DateTime @default(now()) @map("created_at")
+
+  comment_like_id   Int           @id @default(autoincrement()) @map("comment_like_id")
+  userId            Int           @map("user_id")
+  commentId         Int           @map("comment_id")
+  createdAt         DateTime      @default(now()) @map("created_at")
+
 
   user    User    @relation(fields: [userId], references: [userId], onDelete: Cascade)
   comment Comment @relation(fields: [commentId], references: [commentId], onDelete: Cascade)
@@ -88,24 +91,27 @@ model CommentLike {
 }
 
 model RefreshToken {
-  id        Int      @id @default(autoincrement()) @map("token_id")
-  userId    Int      @unique @map("user_id") // userId를 고유 값으로 설정
-  token     String?  @map("refresh_token")
-  createdAt DateTime @default(now()) @map("create_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  user      User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  id              Int             @id @default(autoincrement()) @map("token_id")
+  userId          Int             @unique @map("user_id") // userId를 고유 값으로 설정
+  token           String?         @map("refresh_token")
+  createdAt       DateTime        @default(now()) @map("create_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  user            User            @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("refresh_tokens")
 }
 
 model Follow {
-  followId   Int      @id @default(autoincrement()) @map("follow_id")
-  userId     Int      @map("user_id")
-  followerId Int      @map("follower_id")
-  createdAt  DateTime @default(now()) @map("created_at")
 
-  user     User @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  follower User @relation("follower", fields: [followerId], references: [userId], onDelete: Cascade)
+  followId          Int           @id @default(autoincrement()) @map("follow_id")
+  followingUserId   Int           @map("following_user_id")
+  followerUserId    Int           @map("follower_user_id")
+  createdAt         DateTime      @default(now()) @map("created_at")
+
+  followingUser     User          @relation("following", fields: [followingUserId], references: [userId], onDelete: Cascade)
+  followerUser      User          @relation("follower",fields: [followerUserId], references: [userId], onDelete: Cascade)
 
   @@map("follows")
 }

@@ -5,7 +5,7 @@ import { Prisma } from '@prisma/client';
 
 const followRouter = express.Router();
 
-//팔로우 api
+// 팔로우 api
 followRouter.post('/:userId/follow', async (req, res, next) => {
   try {
     // const followerId = req.user;
