@@ -16,10 +16,7 @@ userRouter.get('/:email', async (req, res, next) => {
 
     // 해당 이메일을 가진 유저가 있는지 확인하기
     if (!user) {
-      return res.status(HTTP_STATUS.NOT_FOUND).json({
-        status: HTTP_STATUS.NOT_FOUND,
-        message: '존재하지 않는 회원입니다.',
-      });
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 사용자입니다.');
     }
 
     //프로필 가져오기
@@ -57,17 +54,11 @@ userRouter.patch('/:email', async (req, res, next) => {
     });
 
     if (!user) {
-      return res.status(HTTP_STATUS.NOT_FOUND).json({
-        status: HTTP_STATUS.NOT_FOUND,
-        message: '존재하지 않는 회원입니다.',
-      });
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 사용자입니다.');
     }
 
     if (userId !== user.userId) {
-      return res.status(HTTP_STATUS.FORBIDDEN).json({
-        status: HTTP_STATUS.FORBIDDEN,
-        message: '프로필 수정 권한이 없습니다.',
-      });
+      throw new CustomError(HTTP_STATUS.FORBIDDEN, '프로필 수정 권한이 없습니다.');
     }
 
     const updatedUser = await prisma.user.update({
