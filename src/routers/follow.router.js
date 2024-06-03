@@ -9,98 +9,120 @@ const followRouter = express.Router();
 //팔로우 api
 followRouter.post('/:userId/follow', authenticateToken, async (req, res, next) => {
   try {
-    const followerId = req.user.userId;
-    //테스트용 팔로워 아이디
-    // const followerId = 3;
+    const followerUserId = req.user.userId;
     const { userId } = req.params;
 
-    //followId랑 userId가 같으면 에러 띄우기
+    // 팔로우 할 user가 자신(follower)과 같은지 확인
     if (followerId === +userId) {
       return res
         .status(HTTP_STATUS.BAD_REQUEST)
         .json({ status: HTTP_STATUS.BAD_REQUEST, message: '자기자신을 팔로우할 수 없습니다.' });
     }
 
+    // 팔로우 할 user를 DB에서 조회
     const user = await prisma.user.findUnique({ where: { userId: +userId } });
+    // 팔로우 할 user가 DB에 없는 경우
     if (!user) {
       return res
         .status(HTTP_STATUS.NOT_FOUND)
         .json({ status: HTTP_STATUS.NOT_FOUND, message: '존재하지 않는 사용자입니다.' });
     }
 
-    const savedFollow = await prisma.follow.findFirst({ where: { userId: +userId, followerId } });
+    // follows 테이블에서 자신(follower_user)이 팔로우한 기록이 있는지 확인
+    const savedFollow = await prisma.follow.findFirst({
+      where: {
+        followingUserId: +userId,
+        followerUserId: followerUserId,
+      },
+    });
 
-    //해당하는 팔로우 데이터가 없을 때
+    // 팔로우 한 기록이 없으면
     if (!savedFollow) {
       await prisma.$transaction(
         async (txn) => {
+          // follows 테이블에 팔로우 데이터 생성
           await txn.follow.create({
             data: {
-              userId: +userId,
-              followerId,
+              followingUserId: +userId,
+              followerUserId: followerUserId,
             },
           });
+          // following user의 팔로우 수 +1
           await txn.user.update({
             where: { userId: +userId },
             data: { followerCount: user.followerCount + 1 },
           });
         },
-        {
-          isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
-        },
+        // 격리 수준 설정
+        { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted },
       );
+      // 반환 정보
       return res
         .status(HTTP_STATUS.OK)
         .json({ status: HTTP_STATUS.OK, message: `${user.username}을/를 팔로우 했습니다.` });
-    } else if (savedFollow) {
-      //해당하는 팔로우 데이터가 있을 때
+    }
+    // 이미 팔로우 중이면
+    else {
       await prisma.$transaction(
         async (txn) => {
+          // follows 테이블에서 팔로우 데이터 삭제
           await txn.follow.delete({ where: { followId: savedFollow.followId } });
+          // following user의 팔로우 수 -1
           await txn.user.update({
             where: { userId: +userId },
             data: { followerCount: user.followerCount - 1 },
           });
         },
-        {
-          isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
-        },
+        // 격리 수준 설정
+        { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted },
       );
+      // 반환 정보
       return res
         .status(HTTP_STATUS.OK)
         .json({ status: HTTP_STATUS.OK, message: `${user.username}을/를 언팔로우 했습니다.` });
     }
+    // 에러 처리
   } catch (error) {
     next(error);
   }
 });
 
-//팔로워 조회 api
+// 팔로워 조회 api
 followRouter.get('/:userId/follow', async (req, res, next) => {
   try {
     const { userId } = req.params;
-
+    // 팔로우 할 user를 DB에서 조회
     const user = await prisma.user.findFirst({ where: { userId: +userId } });
+    // 팔로우 할 user가 DB에 없는 경우
     if (!user) {
       return res
         .status(HTTP_STATUS.NOT_FOUND)
         .json({ status: HTTP_STATUS.NOT_FOUND, message: '존재하지 않는 사용자입니다.' });
     }
 
-    let followers = await prisma.follow.findMany({
-      where: { userId: +userId },
-      include: { follower: true },
+    // 해당 user를 팔로우하는 사용자들을 조회
+    const follows = await prisma.follow.findMany({
+      where: { followingUserId: +userId },
+      include: { followerUser: true },
     });
 
-    followers = followers.map((follower) => {
+    // 평탄화
+    const followers = follows.map((follow) => {
       return {
-        followerName: follower.follower.username,
-        followerProfileImage: follower.follower.profileImage,
-        followerIntroduction: follower.follower.introduction,
+        followerName: follow.followerUser.username,
+        followerProfileImage: follow.followerUser.profileImage,
+        followerIntroduction: follow.followerUser.introduction,
       };
     });
 
-    return res.status(HTTP_STATUS.OK).json({ status: HTTP_STATUS.OK, message: `${user.username}의 팔로워`, followers });
+    // 반환 정보
+    return res.status(HTTP_STATUS.OK).json({
+      status: HTTP_STATUS.OK,
+      message: `${user.username}의 팔로워`,
+      followers,
+    });
+
+    // 에러 처리
   } catch (error) {
     next(error);
   }
