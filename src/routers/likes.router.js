@@ -8,8 +8,7 @@ const likeRouter = express.Router();
 // 게시글에 좋아요/취소 API <<< TODO: AccessToken 인증 미들웨어 거쳐야함
 likeRouter.put('/:postId/likes', async (req, res, next) => {
   try {
-    const userId = 1; //테스트용
-    // const { userId } = req.user;
+    const { userId } = req.user;
     const { postId } = req.params;
 
     // 해당 게시글 가져오기
@@ -58,10 +57,8 @@ likeRouter.put('/:postId/likes', async (req, res, next) => {
             data: { likeCount: post.likeCount + 1 },
           });
         },
-        {
-          //격리 수준 설정
-          isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
-        },
+        //격리 수준 설정
+        { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted },
       );
     }
 
@@ -70,22 +67,15 @@ likeRouter.put('/:postId/likes', async (req, res, next) => {
       await prisma.$transaction(
         async (txn) => {
           // post_likes 테이블에서 데이터 삭제
-          await txn.postLike.delete({
-            where: {
-              userId: userId,
-              postId: +postId,
-            },
-          });
+          await txn.postLike.delete({ where: { post_like_id: like.post_like_id } });
           // posts 테이블의 해당 post의 like_count를 -1
           await txn.post.update({
             where: { postId: +postId },
             data: { likeCount: post.likeCount - 1 },
           });
         },
-        {
-          //격리 수준 설정
-          isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
-        },
+        //격리 수준 설정
+        { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted },
       );
     }
 
@@ -127,7 +117,7 @@ likeRouter.get('/:postId/likes', async (req, res, next) => {
     // 반환 정보
     return res.status(HTTP_STATUS.OK).json({
       status: HTTP_STATUS.OK,
-      message: '해당 게시글의 좋아요 정보를 성공적으로 불러왔습니다.',
+      message: `${post.postId}번 게시글의 좋아요 정보`,
       data: likes,
     });
 
@@ -140,8 +130,7 @@ likeRouter.get('/:postId/likes', async (req, res, next) => {
 // 댓글에 좋아요/취소 API <<< TODO: AccessToken 인증 미들웨어 거쳐야함
 likeRouter.put('/:postId/comments/:commentId/likes', async (req, res, next) => {
   try {
-    const userId = 1; //테스트용
-    // const { userId } = req.user;
+    const { userId } = req.user;
     const { commentId } = req.params;
 
     // 해당 댓글 가져오기

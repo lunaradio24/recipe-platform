@@ -8,9 +8,7 @@ const followRouter = express.Router();
 // 팔로우 api
 followRouter.post('/:userId/follow', async (req, res, next) => {
   try {
-    // const followerId = req.user;
-    //테스트용 팔로워 아이디
-    const followerId = 3;
+    const { userId: followerUserId } = req.user;
     const { userId } = req.params;
 
     //followId랑 userId가 같으면 에러 띄우기
