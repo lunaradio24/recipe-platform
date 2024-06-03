@@ -1,6 +1,7 @@
 import express from 'express';
 import { prisma } from '../utils/prisma.util.js';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
+import CustomError from '../utils/custom-error.util.js';
 
 const userRouter = express.Router();
 

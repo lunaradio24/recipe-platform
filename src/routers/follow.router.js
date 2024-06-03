@@ -3,6 +3,7 @@ import { prisma } from '../utils/prisma.util.js';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
 import { Prisma } from '@prisma/client';
 import { authenticateToken } from '../middlewares/require-access-token.middleware.js';
+import CustomError from '../utils/custom-error.util.js';
 
 const followRouter = express.Router();
 
