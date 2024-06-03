@@ -4,11 +4,12 @@ import { userRouter } from './users.router.js';
 import { postRouter } from './posts.router.js';
 import { commentRouter } from './comments.router.js';
 import { likeRouter } from './likes.router.js';
+import { followRouter } from './follow.router.js';
 
 const apiRouter = express.Router();
 
 apiRouter.use('/auth', authRouter);
-apiRouter.use('/users', userRouter);
+apiRouter.use('/users', [userRouter, followRouter]);
 apiRouter.use('/posts', [postRouter, commentRouter, likeRouter]);
 
 export { apiRouter };

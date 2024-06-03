@@ -23,6 +23,8 @@ model User {
   postLike     PostLike[]
   commentLike  CommentLike[]
   refreshToken RefreshToken?
+  follow       Follow[]
+  follower     Follow[]      @relation("follower")
 
   @@map("users")
 }
@@ -92,4 +94,16 @@ model RefreshToken {
   user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("refresh_tokens")
+}
+
+model Follow {
+  followId   Int      @id @default(autoincrement()) @map("follow_id")
+  userId     Int      @map("user_id")
+  followerId Int      @map("follower_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user     User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  follower User @relation("follower", fields: [followerId], references: [userId], onDelete: Cascade)
+
+  @@map("follows")
 }
