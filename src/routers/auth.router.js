@@ -165,8 +165,8 @@ authRouter.post('/renew-tokens', authenticateRefreshToken, async (req, res, next
 
     console.log(refreshToken);
     console.log(req.headers.authorization);
-    console.log(hashedRefreshToken);
-    const result = await prisma.refreshToken.upsert({
+    // refreshToken 갱신
+    await prisma.refreshToken.upsert({
       where: {
         userId: user.userId,
       },
@@ -178,7 +178,7 @@ authRouter.post('/renew-tokens', authenticateRefreshToken, async (req, res, next
         token: hashedRefreshToken,
       },
     });
-    console.log(result);
+
     return res.status(HTTP_STATUS.OK).json({
       message: '재발급에 성공했습니다.',
       data: {
