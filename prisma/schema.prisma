@@ -14,6 +14,7 @@ model User {
   username        String        @map("username")
   profileImage    String?       @map("profile_image")
   introduction    String?       @map("introduction")
+  followerCount   Int           @default(0) @map("follower_count")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
 
@@ -22,6 +23,8 @@ model User {
   postLike        PostLike[]
   commentLike     CommentLike[]
   refreshToken    RefreshToken?
+  follow          Follow[]
+  follower        Follow[]      @relation("follower")
 
   @@map("users")
 }
@@ -32,7 +35,7 @@ model Post {
   title         String        @map("title")
   content       String        @db.Text @map("content")
   imageUrl      String?       @map("image_url")
-  likeCount    Int           @default(0) @map("like_count")
+  likeCount     Int           @default(0) @map("like_count")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
@@ -48,7 +51,7 @@ model Comment {
   commenterId   Int           @map("commenter_id")
   postId        Int           @map("post_id")
   content       String        @map("content")
-  likeCount    Int           @default(0) @map("like_count")
+  likeCount     Int           @default(0) @map("like_count")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
@@ -91,4 +94,16 @@ model RefreshToken {
   user              User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("refresh_tokens")
+}
+
+model Follow {
+  followId          Int           @id @default(autoincrement()) @map("follow_id")
+  userId            Int           @map("user_id")
+  followerId        Int           @map("follower_id")
+  createdAt         DateTime      @default(now()) @map("created_at")
+
+  user              User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  follower          User          @relation("follower",fields: [followerId], references: [userId], onDelete: Cascade)
+
+  @@map("follows")
 }
