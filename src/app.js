@@ -5,6 +5,7 @@ import { HTTP_STATUS } from './constants/http-status.constant.js';
 import { apiRouter } from './routers/index.js';
 import errorHandler from './middlewares/error-handler.middleware.js';
 
+
 const app = express();
 
 app.use(express.json());
