@@ -48,7 +48,9 @@ followRouter.post('/:userId/follow', async (req, res, next) => {
           isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
         },
       );
-      return res.status(HTTP_STATUS.OK).json({ status: HTTP_STATUS.OK, message: `${userId}를 팔로우 했습니다.` });
+      return res
+        .status(HTTP_STATUS.OK)
+        .json({ status: HTTP_STATUS.OK, message: `${user.username}을/를 팔로우 했습니다.` });
     } else if (savedFollow) {
       //해당하는 팔로우 데이터가 있을 때
       await prisma.$transaction(
@@ -63,7 +65,9 @@ followRouter.post('/:userId/follow', async (req, res, next) => {
           isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
         },
       );
-      return res.status(HTTP_STATUS.OK).json({ status: HTTP_STATUS.OK, message: `${userId}를 언팔로우 했습니다.` });
+      return res
+        .status(HTTP_STATUS.OK)
+        .json({ status: HTTP_STATUS.OK, message: `${user.username}을/를 언팔로우 했습니다.` });
     }
   } catch (error) {
     next(error);
