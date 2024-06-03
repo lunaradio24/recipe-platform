@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["omitApi"]
 }
 
 datasource db {
@@ -26,8 +27,11 @@ model User {
   follow          Follow[]
   follower        Follow[]      @relation("follower")
 
+
   @@map("users")
 }
+
+
 
 model Post {
   postId        Int           @id @default(autoincrement()) @map("post_id")
@@ -62,6 +66,7 @@ model Comment {
   @@map("comments")
 }
 
+
 model PostLike {
   post_like_id      BigInt        @id @default(autoincrement()) @map("post_like_id")
   userId            Int           @map("user_id")
@@ -87,15 +92,15 @@ model CommentLike {
 }
 
 model RefreshToken {
-  tokenId           Int           @id @default(autoincrement()) @map("token_id")
-  userId            Int           @unique @map("user_id")
-  refreshToken      String        @map("refresh_token")
-  createdAt         DateTime      @default(now()) @map("created_at")
-  updatedAt         DateTime      @updatedAt @map("updated_at")
-
-  user              User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  id        Int      @id @default(autoincrement()) @map("token_id")
+  userId    Int      @unique @map("user_id") // userId를 고유 값으로 설정
+  token     String?   @map("refresh_token")
+  createdAt DateTime @default(now()) @map("create_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@map("refresh_tokens")
+
 }
 
 model Follow {
@@ -108,4 +113,5 @@ model Follow {
   follower          User          @relation("follower",fields: [followerId], references: [userId], onDelete: Cascade)
 
   @@map("follows")
+
 }
