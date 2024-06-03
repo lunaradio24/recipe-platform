@@ -5,16 +5,13 @@ import { HTTP_STATUS } from '../constants/http-status.constant.js';
 const userRouter = express.Router();
 
 // 프로필 조회 API
-userRouter.get('/users/:email', async (req, res, next) => {
+userRouter.get('/:email', async (req, res, next) => {
   try {
     const { email } = req.params;
 
     //유저 이메일로 이름, 이메일, 프로필이미지, 팔로우 숫자, 소개글 가져오기
-    const user = await prisma.user.findUnique({
-      where: { email: +email },
-      include: {
-        followers: true,
-      }, //follower 테이블에 따라 변경 가능
+    const user = await prisma.user.findFirst({
+      where: { email: email },
     });
 
     // 해당 이메일을 가진 유저가 있는지 확인하기
@@ -32,8 +29,8 @@ userRouter.get('/users/:email', async (req, res, next) => {
       profileImage: user.profileImage,
       introduction: user.introduction,
       followerCount: user.followerCount, //or 'followers.length'
-      createdAt: comment.createdAt,
-      updatedAt: comment.updatedAt,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
 
     return res.status(HTTP_STATUS.OK).json({
@@ -49,14 +46,14 @@ userRouter.get('/users/:email', async (req, res, next) => {
 });
 
 // 프로필 수정 API
-userRouter.patch('/users/:email', async (req, res, next) => {
+userRouter.patch('/:email', async (req, res, next) => {
   const { email } = req.params;
   const { username, profileImage, introduction } = req.body;
   try {
     const { userId } = req.user;
 
-    const user = await prisma.user.findUnique({
-      where: { email: +email },
+    const user = await prisma.user.findFirst({
+      where: { email: email },
     });
 
     if (!user) {
@@ -76,7 +73,6 @@ userRouter.patch('/users/:email', async (req, res, next) => {
     const updatedUser = await prisma.user.update({
       where: { email: email },
       data: {
-        userId: user.userId,
         username: username || user.username,
         profileImage: profileImage || user.profileImage,
         introduction: introduction || user.introduction,
