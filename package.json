@@ -21,6 +21,6 @@
   "devDependencies": {
     "joi": "^17.13.1",
     "nodemon": "^3.1.2",
-    "prettier": "^3.2.5"
+    "prettier": "^3.3.0"
   }
 }
