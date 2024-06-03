@@ -2,15 +2,16 @@ import express from 'express';
 import { prisma } from '../utils/prisma.util.js';
 import { commentValidator } from '../middlewares/validators/comment-validator.middleware.js';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
+import { authenticateToken } from '../middlewares/require-access-token.middleware.js';
 
 const commentRouter = express.Router();
 
 //댓글 작성 api
-commentRouter.post('/:postId/comments', commentValidator, async (req, res, next) => {
+commentRouter.post('/:postId/comments', authenticateToken, commentValidator, async (req, res, next) => {
   try {
-    // const { userId } = req.user;
+    const { userId } = req.user;
     //테스트용 유저 아이디
-    const userId = 1;
+    // const userId = 1;
     const { postId } = req.params;
     const { content } = req.body;
 
@@ -77,11 +78,11 @@ commentRouter.get('/:postId/comments', async (req, res, next) => {
 });
 
 //댓글 수정 api
-commentRouter.patch('/:postId/comments/:commentId', commentValidator, async (req, res, next) => {
+commentRouter.patch('/:postId/comments/:commentId', authenticateToken, commentValidator, async (req, res, next) => {
   try {
-    // const { userId } = req.user;
+    const { userId } = req.user;
     //테스트용 유저 아이디
-    const userId = 1;
+    // const userId = 1;
     const { commentId } = req.params;
     const { content } = req.body;
 
@@ -115,11 +116,11 @@ commentRouter.patch('/:postId/comments/:commentId', commentValidator, async (req
 });
 
 //댓글 삭제 api
-commentRouter.delete('/:postId/comments/:commentId', async (req, res, next) => {
+commentRouter.delete('/:postId/comments/:commentId', authenticateToken, async (req, res, next) => {
   try {
-    // const { userId } = req.user;
+    const { userId } = req.user;
     // 테스트용 유저 아이디
-    const userId = 1;
+    // const userId = 1;
     const { commentId } = req.params;
 
     const comment = await prisma.comment.findUnique({
