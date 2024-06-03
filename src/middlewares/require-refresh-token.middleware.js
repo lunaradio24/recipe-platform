@@ -43,7 +43,7 @@ export const authenticateRefreshToken = async (req, res, next) => {
     }
 
     const { userId } = payload;
-    console.log(userId);
+
     
     //db에서 리프레시토큰 조회
     const existedRefreshToken = await prisma.refreshToken.findUnique({
@@ -51,11 +51,11 @@ export const authenticateRefreshToken = async (req, res, next) => {
         userId: userId,
       },
     });
-    console.log(existedRefreshToken);
+  
     //넘겨 받은 리프레시 토큰과 비교
     const isValidRefreshToken =
     existedRefreshToken?.token && await bcrypt.compare(refreshToken, existedRefreshToken.token);
-    console.log(isValidRefreshToken);
+    
     
 
       if (!isValidRefreshToken) {
