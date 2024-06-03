@@ -2,15 +2,17 @@ import express from 'express';
 import { prisma } from '../utils/prisma.util.js';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
 import { Prisma } from '@prisma/client';
+import { authenticateToken } from '../middlewares/require-access-token.middleware.js';
 
 const followRouter = express.Router();
 
-// 팔로우 api
-followRouter.post('/:userId/follow', async (req, res, next) => {
+//팔로우 api
+followRouter.post('/:userId/follow', authenticateToken, async (req, res, next) => {
   try {
-    // const followerId = req.user;
+    const followerId = req.user.userId;
     //테스트용 팔로워 아이디
     const followerUserId = 3;
+
     const { userId } = req.params;
 
     // 팔로우 할 user가 자신(follower)과 같은지 확인
