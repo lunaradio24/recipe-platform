@@ -20,7 +20,7 @@ const errorHandler = (err, req, res, next) => {
     case 'ValidationError':
       return res.status(HTTP_STATUS.BAD_REQUEST).json({ status: HTTP_STATUS.BAD_REQUEST, message: err.message });
 
-    // 그 밖의 예상치 못한 에러 처리
+    // 그 밖의 에러 처리
     default:
       return res
         .status(err.code || HTTP_STATUS.INTERNAL_SERVER_ERROR)

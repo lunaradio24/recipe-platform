@@ -14,18 +14,14 @@ followRouter.post('/:userId/follow', authenticateToken, async (req, res, next) =
 
     // 팔로우 할 user가 자신(follower)과 같은지 확인
     if (followerId === +userId) {
-      return res
-        .status(HTTP_STATUS.BAD_REQUEST)
-        .json({ status: HTTP_STATUS.BAD_REQUEST, message: '자기자신을 팔로우할 수 없습니다.' });
+      throw new CustomError(HTTP_STATUS.BAD_REQUEST, '자기 자신을 팔로우할 수 없습니다.');
     }
 
     // 팔로우 할 user를 DB에서 조회
     const user = await prisma.user.findUnique({ where: { userId: +userId } });
     // 팔로우 할 user가 DB에 없는 경우
     if (!user) {
-      return res
-        .status(HTTP_STATUS.NOT_FOUND)
-        .json({ status: HTTP_STATUS.NOT_FOUND, message: '존재하지 않는 사용자입니다.' });
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 사용자입니다.');
     }
 
     // follows 테이블에서 자신(follower_user)이 팔로우한 기록이 있는지 확인
@@ -94,9 +90,7 @@ followRouter.get('/:userId/follow', async (req, res, next) => {
     // 팔로워 정보를 볼 user가 DB에 있는지 확인
     const user = await prisma.user.findFirst({ where: { userId: +userId } });
     if (!user) {
-      return res
-        .status(HTTP_STATUS.NOT_FOUND)
-        .json({ status: HTTP_STATUS.NOT_FOUND, message: '존재하지 않는 사용자입니다.' });
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 사용자입니다.');
     }
 
     // 해당 user를 팔로우하는 사용자들을 조회
@@ -134,9 +128,7 @@ followRouter.get('/:userId/follow', async (req, res, next) => {
     // 팔로잉 정보를 볼 user가 DB에 있는지 조회
     const user = await prisma.user.findFirst({ where: { userId: +userId } });
     if (!user) {
-      return res
-        .status(HTTP_STATUS.NOT_FOUND)
-        .json({ status: HTTP_STATUS.NOT_FOUND, message: '존재하지 않는 사용자입니다.' });
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 사용자입니다.');
     }
 
     // 해당 user가 팔로잉하는 사용자들을 조회

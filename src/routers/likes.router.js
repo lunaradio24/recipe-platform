@@ -19,18 +19,12 @@ likeRouter.put('/:postId/likes', authenticateToken, async (req, res, next) => {
 
     // 해당 게시글이 존재하는지 확인
     if (!post) {
-      return res.status(HTTP_STATUS.NOT_FOUND).json({
-        status: HTTP_STATUS.NOT_FOUND,
-        message: '존재하지 않는 게시글입니다.',
-      });
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 게시글입니다.');
     }
 
     // 본인이 작성한 게시글인지 확인
     if (userId === post.authorId) {
-      return res.status(HTTP_STATUS.FORBIDDEN).json({
-        status: HTTP_STATUS.FORBIDDEN,
-        message: '본인이 작성한 게시글에는 좋아요를 누를 수 없습니다.',
-      });
+      throw new CustomError(HTTP_STATUS.FORBIDDEN, '본인이 작성한 게시글에는 좋아요를 누를 수 없습니다.');
     }
 
     // post_likes 테이블에서 해당 유저가 해당 게시글에 남긴 좋아요를 검색
@@ -102,10 +96,7 @@ likeRouter.get('/:postId/likes', async (req, res, next) => {
 
     // 해당 게시글이 존재하는지 확인
     if (!post) {
-      return res.status(HTTP_STATUS.NOT_FOUND).json({
-        status: HTTP_STATUS.NOT_FOUND,
-        message: '존재하지 않는 게시글입니다.',
-      });
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 게시글입니다.');
     }
 
     // likes 테이블에서 특정 posts의 좋아요 검색
@@ -139,18 +130,12 @@ likeRouter.put('/:postId/comments/:commentId/likes', authenticateToken, async (r
 
     // 해당 댓글이 존재하는지 확인
     if (!comment) {
-      return res.status(HTTP_STATUS.NOT_FOUND).json({
-        status: HTTP_STATUS.NOT_FOUND,
-        message: '존재하지 않는 댓글입니다.',
-      });
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 댓글입니다.');
     }
 
     // 본인이 작성한 댓글인지 확인
     if (userId === comment.commenterId) {
-      return res.status(HTTP_STATUS.FORBIDDEN).json({
-        status: HTTP_STATUS.FORBIDDEN,
-        message: '본인이 작성한 댓글에는 좋아요를 누를 수 없습니다.',
-      });
+      throw new CustomError(HTTP_STATUS.FORBIDDEN, '본인이 작성한 게시글에는 좋아요를 누를 수 없습니다.');
     }
 
     // comment_likes 테이블에서 해당 유저가 해당 댓글에 남긴 좋아요를 검색
