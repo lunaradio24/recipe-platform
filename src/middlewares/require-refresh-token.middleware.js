@@ -1,9 +1,13 @@
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
 import { prisma } from '../utils/prisma.util.js';
 import bcrypt from 'bcrypt';
 
-import {JWT_REFRESH_KEY} from '../constants/auth.constant.js';
+dotenv.config();
+
+
+const jwtRefresh = process.env.JWT_REFRESH_KEY;
 
 
 export const authenticateRefreshToken = async (req, res, next) => {
@@ -27,7 +31,7 @@ export const authenticateRefreshToken = async (req, res, next) => {
     let payload;
 
     try {
-      payload = jwt.verify(refreshToken, JWT_REFRESH_KEY);
+      payload = jwt.verify(refreshToken, jwtRefresh);
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
         return res.status(HTTP_STATUS.UNAUTHORIZED).json({
@@ -41,28 +45,26 @@ export const authenticateRefreshToken = async (req, res, next) => {
     }
 
     const { userId } = payload;
+    console.log(userId);
 
-    
     //db에서 리프레시토큰 조회
     const existedRefreshToken = await prisma.refreshToken.findUnique({
       where: {
         userId: userId,
       },
     });
-  
+    console.log(existedRefreshToken);
     //넘겨 받은 리프레시 토큰과 비교
     const isValidRefreshToken =
-    existedRefreshToken?.token && await bcrypt.compare(refreshToken, existedRefreshToken.token);
-    
-    
+      existedRefreshToken?.token && (await bcrypt.compare(refreshToken, existedRefreshToken.token));
+    console.log(isValidRefreshToken);
 
-      if (!isValidRefreshToken) {
-        return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-          message: '폐기 된 인증입니다',
-        });
-      }
+    if (!isValidRefreshToken) {
+      return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+        message: '폐기 된 인증입니다',
+      });
+    }
 
-      
     const user = await prisma.user.findUnique({
       where: { userId: userId },
       omit: { password: true },
@@ -73,7 +75,6 @@ export const authenticateRefreshToken = async (req, res, next) => {
         message: '인증 정보와 일치하는 사용자가 없습니다',
       });
     }
-
 
     req.user = user;
 

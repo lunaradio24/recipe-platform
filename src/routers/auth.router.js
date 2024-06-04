@@ -8,6 +8,8 @@ import { authenticateToken } from '../middlewares/require-access-token.middlewar
 import { authenticateRefreshToken } from '../middlewares/require-refresh-token.middleware.js';
 import { requireEmailVerification } from '../middlewares/require-email-verification.middleware.js';
 import nodemailer from 'nodemailer';
+import { signUpValidator } from '../middlewares/validators/signUp-validator.middleware.js';
+import { signInValidator } from '../middlewares/validators/signIn-validator.middleware.js';
 
 import {
   JWT_ACCESS_KEY,
@@ -29,26 +31,27 @@ const transporter = nodemailer.createTransport({
 });
 
 // 회원가입 api
-authRouter.post('/sign-up', async (req, res, next) => {
+authRouter.post('/sign-up', signUpValidator, async (req, res, next) => {
   try {
     const { email, password, confirmPassword, username, profileImage, introduction } = req.body;
 
-    const missingFields = REQUIRED_FIELDS_SIGNUP.filter((field) => !req.body[field]);
-    if (missingFields.length > 0) {
-      throw new CustomError(HTTP_STATUS.BAD_REQUEST, `${missingFields.join(', ')} 를 입력해주세요`);
-    }
+    // const missingFields = REQUIRED_FIELDS_SIGNUP.filter((field) => !req.body[field]);
+    // if (missingFields.length > 0) {
+    //   throw new CustomError(HTTP_STATUS.BAD_REQUEST, `${missingFields.join(', ')} 를 입력해주세요`);
+    // }
 
-    if (!EMAIL_REGEX.test(email)) {
-      throw new CustomError(HTTP_STATUS.BAD_REQUEST, '이메일 형식이 옳바르지 않습니다.');
-    }
+    // if (!EMAIL_REGEX.test(email)) {
+    //   throw new CustomError(HTTP_STATUS.BAD_REQUEST, '이메일 형식이 옳바르지 않습니다.');
+    // }
 
-    if (password.length < PASSWORD_MIN_LENGTH) {
-      throw new CustomError(HTTP_STATUS.BAD_REQUEST, `비밀번호는 ${PASSWORD_MIN_LENGTH}자리 이상이어야 합니다.`);
-    }
+    // if (password.length < PASSWORD_MIN_LENGTH) {
+    //   throw new CustomError(HTTP_STATUS.BAD_REQUEST, `비밀번호는 ${PASSWORD_MIN_LENGTH}자리 이상이어야 합니다.`);
+    // }
 
     if (password !== confirmPassword) {
       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '입력한 두 비밀번호가 일치하지 않습니다.');
     }
+
 
 
 
@@ -60,7 +63,7 @@ authRouter.post('/sign-up', async (req, res, next) => {
     if (existingUser) throw new CustomError(HTTP_STATUS.CONFLICT, '이미 가입된 사용자입니다.');
 
     // 비밀번호 해시화
-    const hashedPassword =  bcrypt.hashSync(password, SALT_ROUNDS);
+    const hashedPassword = bcrypt.hashSync(password, SALT_ROUNDS);
 
     const newUser = await prisma.user.create({
       data: {
@@ -102,7 +105,7 @@ authRouter.post('/sign-up', async (req, res, next) => {
 });
 
 // 로그인 API
-authRouter.post('/sign-in', async (req, res, next) => {
+authRouter.post('/sign-in', signInValidator, async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await prisma.user.findUnique({ where: { email } });
@@ -258,8 +261,6 @@ authRouter.get('/profile', authenticateToken, requireEmailVerification, async (r
         updatedAt: user.updatedAt,
       },
     });
-
-
   } catch (error) {
     next(error);
   }
