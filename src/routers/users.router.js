@@ -66,15 +66,13 @@ userRouter.patch('/:email', userProfileValidator, async (req, res, next) => {
     const updatedUser = await prisma.user.update({
       where: { email: email },
       data: {
-        username: username || user.username,
-        profileImage: profileImage || user.profileImage,
-        introduction: introduction || user.introduction,
+        username: username,
+        profileImage: profileImage,
+        introduction: introduction,
       },
     });
 
-    return res
-      .status(HTTP_STATUS.CREATED)
-      .json({ status: HTTP_STATUS.CREATED, message: '프로필을 수정했습니다', updatedUser });
+    return res.status(HTTP_STATUS.OK).json({ status: HTTP_STATUS.OK, message: '프로필을 수정했습니다', updatedUser });
   } catch (error) {
     next(error);
   }
