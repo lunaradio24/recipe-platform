@@ -30,7 +30,7 @@ const kakaoStrategy = () => {
                 email: profile._json.kakao_account.email,
                 username: profile.displayName,
                 profileImage: profile._json.properties.profile_image,
-                emailVerified: 1,
+                emailVerified: true,
                 socialLoginProvider: 'kakao',
               },
             });

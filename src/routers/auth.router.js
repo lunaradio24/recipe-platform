@@ -1,5 +1,7 @@
 import express from 'express';
 import passport from 'passport';
+import axios from 'axios';
+import querystring from 'querystring';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import CustomError from '../utils/custom-error.util.js';
@@ -11,14 +13,15 @@ import { requireEmailVerification } from '../middlewares/require-email-verificat
 import nodemailer from 'nodemailer';
 import { signUpValidator } from '../middlewares/validators/signUp-validator.middleware.js';
 import { signInValidator } from '../middlewares/validators/signIn-validator.middleware.js';
+import { NAVER_CLIENT_ID, NAVER_CLIENT_SECRET, NAVER_REDIRECT_URI } from '../constants/auth.constant.js';
 
 import {
   JWT_ACCESS_KEY,
   JWT_REFRESH_KEY,
   SALT_ROUNDS,
-  NAVER_CLIENT_ID,
-  NAVER_CLIENT_SECRET,
-  NAVER_REDIRECT_URI,
+  REQUIRED_FIELDS_SIGNUP,
+  EMAIL_REGEX,
+  PASSWORD_MIN_LENGTH,
 } from '../constants/auth.constant.js';
 
 const authRouter = express.Router();
@@ -36,7 +39,19 @@ authRouter.post('/sign-up', signUpValidator, async (req, res, next) => {
   try {
     const { email, password, confirmPassword, username, profileImage, introduction } = req.body;
 
-  
+    // const missingFields = REQUIRED_FIELDS_SIGNUP.filter((field) => !req.body[field]);
+    // if (missingFields.length > 0) {
+    //   throw new CustomError(HTTP_STATUS.BAD_REQUEST, `${missingFields.join(', ')} 를 입력해주세요`);
+    // }
+
+    // if (!EMAIL_REGEX.test(email)) {
+    //   throw new CustomError(HTTP_STATUS.BAD_REQUEST, '이메일 형식이 옳바르지 않습니다.');
+    // }
+
+    // if (password.length < PASSWORD_MIN_LENGTH) {
+    //   throw new CustomError(HTTP_STATUS.BAD_REQUEST, `비밀번호는 ${PASSWORD_MIN_LENGTH}자리 이상이어야 합니다.`);
+    // }
+
     if (password !== confirmPassword) {
       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '입력한 두 비밀번호가 일치하지 않습니다.');
     }
@@ -69,8 +84,7 @@ authRouter.post('/sign-up', signUpValidator, async (req, res, next) => {
       해당 인증은 9시간이 지나면 폐기됩니다.</p>`,
     };
 
-     await transporter.sendMail(mailOptions);
-   
+    await transporter.sendMail(mailOptions);
 
     res.status(HTTP_STATUS.CREATED).json({
       message: '회원가입에 성공했습니다. 이메일 인증을 완료해주세요.',
@@ -298,6 +312,17 @@ authRouter.post('/send-verification-email', authenticateToken, async (req, res, 
   }
 });
 
+// 카카오 로그인 api
+authRouter.get('/kakao', passport.authenticate('kakao')); // 요청이 들어온다.
+authRouter.get(
+  '/kakao/callback',
+  passport.authenticate('kakao', {
+    failureRedirect: '/?error=카카오로그인실패', // 로그인에 실패했을 경우 해당 라우터로 이동한다
+  }),
+  (req, res) => {
+    res.status(200).redirect('/'); // 로그인에 성공했을 경우, 다음 라우터가 실행된다
+  },
+);
 
 // 네이버 로그인 엔드포인트
 authRouter.get('/naver', (req, res) => {
@@ -319,7 +344,7 @@ authRouter.get('/naver/callback', async (req, res, next) => {
         code,
         state,
       }),
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
     );
 
     const { access_token: accessToken } = tokenResponse.data;
@@ -328,6 +353,7 @@ authRouter.get('/naver/callback', async (req, res, next) => {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
+    console.log(userResponse.data.response);
     const { email, nickname: username, profile_image: profileImage } = userResponse.data.response;
 
     let user = await prisma.user.findUnique({ where: { email } });
@@ -362,19 +388,5 @@ authRouter.get('/naver/callback', async (req, res, next) => {
     next(error);
   }
 });
-
-
-// 카카오 로그인 api
-authRouter.get('/kakao', passport.authenticate('kakao')); // 요청이 들어온다.
-authRouter.get(
-  '/kakao/callback',
-  passport.authenticate('kakao', {
-    failureRedirect: '/sign-in', // 로그인에 실패했을 경우 해당 라우터로 이동한다
-  }),
-  (req, res) => {
-    res.status(200).redirect('/'); // 로그인에 성공했을 경우, 다음 라우터가 실행된다
-  },
-);
-
 
 export { authRouter };
