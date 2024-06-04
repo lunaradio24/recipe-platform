@@ -1,5 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
+import session from 'express-session';
+import passport from 'passport';
+import { strategies } from './passport/index.js';
 import { SERVER_PORT } from './constants/env.constant.js';
 import { HTTP_STATUS } from './constants/http-status.constant.js';
 import { apiRouter } from './routers/index.js';
@@ -11,11 +14,22 @@ import path from 'path'; // 추가: path 모듈
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET_KEY,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false },
+  }),
+);
+app.use(passport.initialize());
+app.use(passport.session());
+strategies();
 
 // 정적 파일 제공 미들웨어
 app.use(express.static(path.join(__dirname, '../public')));

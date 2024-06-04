@@ -12,13 +12,14 @@ model User {
 
   userId          Int           @id @default(autoincrement()) @map("user_id")
   email           String        @unique @map("email")
-  password        String        @map("password")
+  password        String?       @map("password")
   username        String        @map("username")
   profileImage    String?       @map("profile_image")
   introduction    String?       @map("introduction")
   followerCount   Int           @default(0) @map("follower_count")
   emailVerified         Boolean       @default(false) @map("email_verified")
   emailVerificationToken String?      @map("email_verification_token")
+  socialLoginProvider  String?  @map("social_login_provider")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
 
