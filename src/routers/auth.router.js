@@ -52,7 +52,11 @@ authRouter.post('/sign-up', signUpValidator, async (req, res, next) => {
       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '입력한 두 비밀번호가 일치하지 않습니다.');
     }
 
-    const emailVerificationToken = jwt.sign({ email }, JWT_ACCESS_KEY, { expiresIn: '1h' });
+
+
+
+    const emailVerificationToken = jwt.sign({ email }, JWT_ACCESS_KEY, { expiresIn: '9h' });
+
 
     // 이메일 중복 확인
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -76,7 +80,8 @@ authRouter.post('/sign-up', signUpValidator, async (req, res, next) => {
       from: process.env.EMAIL_USER,
       to: email,
       subject: '이메일 인증을 완료해주세요',
-      html: `<p>이메일 인증을 위해 <a href="${process.env.CLIENT_URL}/verify-email?token=${emailVerificationToken}">여기</a>를 클릭해주세요.</p>`,
+      html: `<p>이메일 인증을 위해 <a href="${process.env.CLIENT_URL}/verify-email?token=${emailVerificationToken}">여기</a>를 클릭해주세요.
+      해당 인증은 9시간이 지나면 폐기됩니다.</p>`,
     };
 
     await transporter.sendMail(mailOptions);
@@ -128,7 +133,7 @@ authRouter.post('/sign-in', signInValidator, async (req, res, next) => {
 
     return res.status(HTTP_STATUS.OK).json({
       message: '로그인에 성공했습니다.',
-      data: { accessToken, refreshToken },
+      data: { accessToken, refreshToken},
     });
   } catch (error) {
     next(error);
@@ -200,7 +205,7 @@ authRouter.post('/sign-out', authenticateRefreshToken, async (req, res, next) =>
   }
 });
 
-// 이메일 확인 API
+// 이메일 확인시 인증 API 해당api는 인증메일을 읽는api?입니다
 authRouter.get('/verify-email', async (req, res, next) => {
   try {
     const { token } = req.query;
@@ -255,6 +260,53 @@ authRouter.get('/profile', authenticateToken, requireEmailVerification, async (r
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+// 인증 이메일 재발급 api
+authRouter.post('/send-verification-email', authenticateToken, async (req, res, next) => {
+  try {
+    // 현재 로그인된 사용자의 정보를 데이터베이스에서 조회
+    const user = await prisma.user.findUnique({ where: { userId: req.user.userId } });
+
+    // 사용자가 존재하지 않는 경우
+    if (!user) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    // 이미 이메일 인증을 완료한 경우
+    if (user.emailVerified) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ message: '이미 이메일 인증이 완료되었습니다.' });
+    }
+
+    // 새로운 이메일 인증 토큰 생성
+    const emailVerificationToken = jwt.sign({ email: user.email }, JWT_ACCESS_KEY, { expiresIn: '9h' });
+
+    // 데이터베이스에 이메일 인증 토큰 업데이트
+    await prisma.user.update({
+      where: { userId: user.userId },
+      data: { emailVerificationToken },
+    });
+
+    // 이메일 옵션 설정
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: '이메일 인증을 완료해주세요',
+      html: `<p>이메일 인증을 위해 <a href="${process.env.CLIENT_URL}/verify-email?token=${emailVerificationToken}">여기</a>를 클릭해주세요.
+      해당 인증은 9시간이 지나면 폐기됩니다.</p>`,
+    };
+
+    // 이메일 전송
+    await transporter.sendMail(mailOptions);
+
+    // 성공 메시지 반환
+    res.status(HTTP_STATUS.OK).json({
+      message: '이메일 인증 요청을 성공적으로 전송했습니다.',
     });
   } catch (error) {
     next(error);

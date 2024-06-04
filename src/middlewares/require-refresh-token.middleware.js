@@ -6,7 +6,9 @@ import bcrypt from 'bcrypt';
 
 dotenv.config();
 
+
 const jwtRefresh = process.env.JWT_REFRESH_KEY;
+
 
 export const authenticateRefreshToken = async (req, res, next) => {
   try {

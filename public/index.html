@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>맛없없 레시피</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="#" class="logo">맛없없 레시피</a>
+            <div class="search-container">
+                <input type="text" placeholder="검색">
+                <button class="search-btn">🔍</button>
+            </div>
+            <div class="right-buttons">
+                <button class="new-post-btn">새 글 작성</button>
+                <button class="login-btn" id="login-btn">로그인</button>
+                <div id="user-display" style="margin-top: 10px;"></div>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <div class="filters">
+            <button class="filter-btn">최신</button>
+            <button class="filter-btn">인기</button>
+        </div>
+        <div class="recipes">
+            <!-- Recipe Card -->
+            <div class="recipe-card">
+                <div class="image">image</div>
+                <div class="info">
+                    <div class="title">title</div>
+                    <div class="author">author <span class="likes">❤️32</span></div>
+                </div>
+            </div>
+            <!-- Repeat above block for each recipe card -->
+        </div>
+    </main>
+    <script src="/script.js"></script>
+</body>
+</html>
