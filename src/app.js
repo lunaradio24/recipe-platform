@@ -4,12 +4,21 @@ import { SERVER_PORT } from './constants/env.constant.js';
 import { HTTP_STATUS } from './constants/http-status.constant.js';
 import { apiRouter } from './routers/index.js';
 import errorHandler from './middlewares/error-handler.middleware.js';
+import { fileURLToPath } from 'url'; // 추가: fileURLToPath 모듈
+import path from 'path'; // 추가: path 모듈
+
+// __dirname 정의
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// 정적 파일 제공 미들웨어
+app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/health-check', (req, res) => {
   return res.status(HTTP_STATUS.OK).send(`I'm healthy`);
