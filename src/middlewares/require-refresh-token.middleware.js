@@ -6,8 +6,6 @@ import bcrypt from 'bcrypt';
 import {JWT_REFRESH_KEY} from '../constants/auth.constant.js';
 
 
-const jwtRefresh = process.env.JWT_REFRESH;
-
 export const authenticateRefreshToken = async (req, res, next) => {
   try {
     const authorization = req.headers.authorization;
