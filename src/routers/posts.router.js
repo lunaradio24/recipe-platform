@@ -9,17 +9,19 @@ const postRouter = express.Router();
 
 // 게시글 작성 API
 // req.user는 accessToken을 통해서 인증받은 얘들 가져 올 것이다.
-postRouter.post('/', authenticateToken, postValidator, async (req, res, next) => {
+<<<<<<< Updated upstream
+postRouter.post('/', postValidator, async (req, res, next) => {
+=======
+postRouter.post('/', postValidator, authenticateToken, async (req, res, next) => {
+>>>>>>> Stashed changes
   try {
-    // const user = req.user;
-
+    const { userId } = req.user;
+    console.log(userId);
     const { title, content, imageUrl } = req.body;
-
-    const authorId = 1; //user.id;
 
     const data = await prisma.post.create({
       data: {
-        authorId: authorId,
+        authorId: userId,
         title,
         content,
         imageUrl,
@@ -38,7 +40,7 @@ postRouter.post('/', authenticateToken, postValidator, async (req, res, next) =>
 
 // 게시글 목록 조회 API
 // req.user는 accessToken을 통해서 인증받은 얘들 가져 올 것이다.
-postRouter.get('/', postValidator, async (req, res, next) => {
+postRouter.get('/', async (req, res, next) => {
   try {
     // 내림차순
     let { sort } = req.query;
@@ -126,7 +128,12 @@ postRouter.get('/:postId', async (req, res, next) => {
 });
 
 // 게시글 수정 API
+<<<<<<< Updated upstream
+
 postRouter.patch('/:postId', authenticateToken, postValidator, async (req, res, next) => {
+=======
+postRouter.patch('/:postId', authenticateToken, async (req, res, next) => {
+>>>>>>> Stashed changes
   try {
     const user = req.user;
     const authorId = user.id;

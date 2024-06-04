@@ -2,6 +2,7 @@ import express from 'express';
 import { prisma } from '../utils/prisma.util.js';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
 import CustomError from '../utils/custom-error.util.js';
+import { userProfileValidator } from '../middlewares/validators/user-profile-validator.middleware.js';
 
 const userRouter = express.Router();
 
@@ -44,7 +45,7 @@ userRouter.get('/:email', async (req, res, next) => {
 });
 
 // 프로필 수정 API
-userRouter.patch('/:email', async (req, res, next) => {
+userRouter.patch('/:email', userProfileValidator, async (req, res, next) => {
   const { email } = req.params;
   const { username, profileImage, introduction } = req.body;
   try {

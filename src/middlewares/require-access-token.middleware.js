@@ -1,10 +1,11 @@
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
 import { prisma } from '../utils/prisma.util.js';
-import {JWT_ACCESS_KEY} from '../constants/auth.constant.js';
 
+dotenv.config();
 
-
+const jwtSecret = process.env.JWT_ACCESS_KEY;
 
 export const authenticateToken = async (req, res, next) => {
   try {
@@ -32,7 +33,7 @@ export const authenticateToken = async (req, res, next) => {
     let payload;
 
     try {
-      payload = jwt.verify(accessToken, JWT_ACCESS_KEY);
+      payload = jwt.verify(accessToken, jwtSecret);
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
         return res.status(HTTP_STATUS.UNAUTHORIZED).json({
