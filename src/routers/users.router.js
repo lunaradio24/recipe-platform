@@ -3,7 +3,7 @@ import { prisma } from '../utils/prisma.util.js';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
 import CustomError from '../utils/custom-error.util.js';
 import { userProfileValidator } from '../middlewares/validators/user-profile-validator.middleware.js';
-import { authenticateToken } from '../middlewares/require-access-token.middleware.js';
+import { requireAccessToken } from '../middlewares/require-access-token.middleware.js';
 
 const userRouter = express.Router();
 
@@ -39,7 +39,7 @@ userRouter.get('/:email', async (req, res, next) => {
 });
 
 // 프로필 수정 API
-userRouter.patch('/:email', authenticateToken, userProfileValidator, async (req, res, next) => {
+userRouter.patch('/:email', requireAccessToken, userProfileValidator, async (req, res, next) => {
   try {
     const { userId } = req.user;
     const { email } = req.params;

@@ -2,14 +2,14 @@ import express from 'express';
 import { prisma } from '../utils/prisma.util.js';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
 import { Prisma } from '@prisma/client';
-import { authenticateToken } from '../middlewares/require-access-token.middleware.js';
+import { requireAccessToken } from '../middlewares/require-access-token.middleware.js';
 import CustomError from '../utils/custom-error.util.js';
 import { requireEmailVerification } from '../middlewares/require-email-verification.middleware.js';
 
 const followRouter = express.Router();
 
 //팔로우 api
-followRouter.post('/:userId/follow', authenticateToken, async (req, res, next) => {
+followRouter.post('/:userId/follow', requireAccessToken, blockRoles(['BLACKLIST']), async (req, res, next) => {
   try {
     const followerUserId = req.user.userId;
     const { userId } = req.params;
@@ -22,9 +22,7 @@ followRouter.post('/:userId/follow', authenticateToken, async (req, res, next) =
     // 팔로우 할 user를 DB에서 조회
     const user = await prisma.user.findUnique({ where: { userId: +userId } });
     // 팔로우 할 user가 DB에 없는 경우
-    if (!user) {
-      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 사용자입니다.');
-    }
+    if (!user) throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 사용자입니다.');
 
     // follows 테이블에서 자신(follower_user)이 팔로우한 기록이 있는지 확인
     const savedFollow = await prisma.follow.findFirst({
@@ -86,79 +84,87 @@ followRouter.post('/:userId/follow', authenticateToken, async (req, res, next) =
 });
 
 // 팔로워 조회 api
-followRouter.get('/:userId/followers', authenticateToken, requireEmailVerification, async (req, res, next) => {
-  try {
-    const { userId } = req.params;
-    // 팔로워 정보를 볼 user가 DB에 있는지 확인
-    const user = await prisma.user.findFirst({ where: { userId: +userId } });
-    if (!user) {
-      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 사용자입니다.');
+followRouter.get(
+  '/:userId/followers',
+  requireAccessToken,
+  blockRoles(['BLACKLIST']),
+  requireEmailVerification,
+  async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+      // 팔로워 정보를 볼 user가 DB에 있는지 확인
+      const user = await prisma.user.findFirst({ where: { userId: +userId } });
+      if (!user) throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 사용자입니다.');
+
+      // 해당 user를 팔로우하는 사용자들을 조회
+      const follows = await prisma.follow.findMany({
+        where: { followingUserId: +userId },
+        include: { followerUser: true },
+      });
+
+      // 평탄화
+      const followers = follows.map((follow) => {
+        return {
+          followerName: follow.followerUser.username,
+          followerProfileImage: follow.followerUser.profileImage,
+          followerIntroduction: follow.followerUser.introduction,
+        };
+      });
+
+      // 반환 정보
+      return res.status(HTTP_STATUS.OK).json({
+        status: HTTP_STATUS.OK,
+        message: `${user.username}의 팔로워`,
+        followers,
+      });
+
+      // 에러 처리
+    } catch (error) {
+      next(error);
     }
-
-    // 해당 user를 팔로우하는 사용자들을 조회
-    const follows = await prisma.follow.findMany({
-      where: { followingUserId: +userId },
-      include: { followerUser: true },
-    });
-
-    // 평탄화
-    const followers = follows.map((follow) => {
-      return {
-        followerName: follow.followerUser.username,
-        followerProfileImage: follow.followerUser.profileImage,
-        followerIntroduction: follow.followerUser.introduction,
-      };
-    });
-
-    // 반환 정보
-    return res.status(HTTP_STATUS.OK).json({
-      status: HTTP_STATUS.OK,
-      message: `${user.username}의 팔로워`,
-      followers,
-    });
-
-    // 에러 처리
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // 팔로잉 조회 api
-followRouter.get('/:userId/followings', authenticateToken, requireEmailVerification, async (req, res, next) => {
-  try {
-    const { userId } = req.params;
-    // 팔로잉 정보를 볼 user가 DB에 있는지 조회
-    const user = await prisma.user.findFirst({ where: { userId: +userId } });
-    if (!user) {
-      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 사용자입니다.');
+followRouter.get(
+  '/:userId/followings',
+  requireAccessToken,
+  blockRoles(['BLACKLIST']),
+  requireEmailVerification,
+  async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+      // 팔로잉 정보를 볼 user가 DB에 있는지 조회
+      const user = await prisma.user.findFirst({ where: { userId: +userId } });
+      if (!user) throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 사용자입니다.');
+
+      // 해당 user가 팔로잉하는 사용자들을 조회
+      const follows = await prisma.follow.findMany({
+        where: { followerUserId: +userId },
+        include: { followingUser: true },
+      });
+
+      // 평탄화
+      const followings = follows.map((follow) => {
+        return {
+          followerName: follow.followingUser.username,
+          followerProfileImage: follow.followingUser.profileImage,
+          followerIntroduction: follow.followingUser.introduction,
+        };
+      });
+
+      // 반환 정보
+      return res.status(HTTP_STATUS.OK).json({
+        status: HTTP_STATUS.OK,
+        message: `${user.username}의 팔로잉 목록`,
+        followings,
+      });
+
+      // 에러 처리
+    } catch (error) {
+      next(error);
     }
-
-    // 해당 user가 팔로잉하는 사용자들을 조회
-    const follows = await prisma.follow.findMany({
-      where: { followerUserId: +userId },
-      include: { followingUser: true },
-    });
-
-    // 평탄화
-    const followings = follows.map((follow) => {
-      return {
-        followerName: follow.followingUser.username,
-        followerProfileImage: follow.followingUser.profileImage,
-        followerIntroduction: follow.followingUser.introduction,
-      };
-    });
-
-    // 반환 정보
-    return res.status(HTTP_STATUS.OK).json({
-      status: HTTP_STATUS.OK,
-      message: `${user.username}의 팔로잉 목록`,
-      followings,
-    });
-
-    // 에러 처리
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 export { followRouter };

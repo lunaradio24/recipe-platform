@@ -4,7 +4,7 @@ import { JWT_ACCESS_KEY } from '../constants/auth.constant.js';
 import { prisma } from '../utils/prisma.util.js';
 import CustomError from '../utils/custom-error.util.js';
 
-export const authenticateToken = async (req, res, next) => {
+export const requireAccessToken = async (req, res, next) => {
   try {
     const authorization = req.headers.authorization;
     if (!authorization) throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '인증정보가 없습니다');
