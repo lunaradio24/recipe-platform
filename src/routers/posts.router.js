@@ -8,11 +8,9 @@ import { editpostValidator } from '../middlewares/validators/edit-post-validator
 const postRouter = express.Router();
 
 // 게시글 작성 API
-// req.user는 accessToken을 통해서 인증받은 얘들 가져 올 것이다.
 postRouter.post('/', postValidator, authenticateToken, async (req, res, next) => {
   try {
     const { userId } = req.user;
-    console.log(userId);
     const { title, content, imageUrl } = req.body;
 
     const data = await prisma.post.create({
@@ -35,7 +33,6 @@ postRouter.post('/', postValidator, authenticateToken, async (req, res, next) =>
 });
 
 // 게시글 목록 조회 API
-// req.user는 accessToken을 통해서 인증받은 얘들 가져 올 것이다.
 postRouter.get('/', async (req, res, next) => {
   try {
     // 내림차순
@@ -48,12 +45,10 @@ postRouter.get('/', async (req, res, next) => {
     }
 
     let data = await prisma.post.findMany({
-      //where: { authorId },
       orderBy: {
         createdAt: sort,
       },
       include: {
-        // user  User @relation(fields: [authorId], references: [userId], onDelete: Cascade)
         user: true,
       },
     });
@@ -84,12 +79,9 @@ postRouter.get('/', async (req, res, next) => {
 });
 
 // 게시글 상세 조회 API
-// req.user는 accessToken을 통해서 인증받은 얘들 가져 올 것이다.
 postRouter.get('/:postId', async (req, res, next) => {
   try {
     const { postId } = req.params;
-
-    console.log(postId);
 
     let data = await prisma.post.findUnique({
       where: { postId: +postId /**authorId: authorId**/ },
