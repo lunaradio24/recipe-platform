@@ -50,17 +50,14 @@ authRouter.post('/sign-up', async (req, res, next) => {
       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '입력한 두 비밀번호가 일치하지 않습니다.');
     }
 
-
-
     const emailVerificationToken = jwt.sign({ email }, JWT_ACCESS_KEY, { expiresIn: '1h' });
-
 
     // 이메일 중복 확인
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) throw new CustomError(HTTP_STATUS.CONFLICT, '이미 가입된 사용자입니다.');
 
     // 비밀번호 해시화
-    const hashedPassword =  bcrypt.hashSync(password, SALT_ROUNDS);
+    const hashedPassword = bcrypt.hashSync(password, SALT_ROUNDS);
 
     const newUser = await prisma.user.create({
       data: {
@@ -257,8 +254,6 @@ authRouter.get('/profile', authenticateToken, requireEmailVerification, async (r
         updatedAt: user.updatedAt,
       },
     });
-
-
   } catch (error) {
     next(error);
   }
