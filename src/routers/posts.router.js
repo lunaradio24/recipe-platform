@@ -4,7 +4,7 @@ import { postValidator } from '../middlewares/validators/post-validator.middlewa
 import { prisma } from '../utils/prisma.util.js';
 import CustomError from '../utils/custom-error.util.js';
 import { authenticateToken } from '../middlewares/require-access-token.middleware.js';
-
+import { editpostValidator } from '../middlewares/validators/edit-post-validator.middleware.js';
 const postRouter = express.Router();
 
 // 게시글 작성 API
@@ -38,10 +38,6 @@ postRouter.post('/', postValidator, authenticateToken, async (req, res, next) =>
 // req.user는 accessToken을 통해서 인증받은 얘들 가져 올 것이다.
 postRouter.get('/', async (req, res, next) => {
   try {
-    // const user = req.user;
-
-    //const authorId = 1; //user.id;  // 이거 주석처리 한 이유는
-
     // 내림차순
     let { sort } = req.query;
 
@@ -93,6 +89,8 @@ postRouter.get('/:postId', async (req, res, next) => {
   try {
     const { postId } = req.params;
 
+    console.log(postId);
+
     let data = await prisma.post.findUnique({
       where: { postId: +postId /**authorId: authorId**/ },
       include: { user: true },
@@ -126,7 +124,7 @@ postRouter.get('/:postId', async (req, res, next) => {
 });
 
 // 게시글 수정 API
-postRouter.patch('/:postId', authenticateToken, async (req, res, next) => {
+postRouter.patch('/:postId', editpostValidator, authenticateToken, async (req, res, next) => {
   try {
     const user = req.user;
     const authorId = user.id;
@@ -165,6 +163,42 @@ postRouter.patch('/:postId', authenticateToken, async (req, res, next) => {
     });
 
     next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 게시글 삭제 API
+postRouter.delete('/:postId', authenticateToken, async (req, res, next) => {
+  try {
+    const user = req.user;
+    const authorId = user.id;
+    const { postId } = req.params;
+
+    const existedPost = await prisma.post.findFirst({
+      where: { authorId: authorId, postId: +postId },
+    });
+
+    if (!existedPost) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
+        status: HTTP_STATUS.NOT_FOUND,
+        message: '게시글을 찾지 못했습니다.',
+        data,
+      });
+    }
+
+    const data = await prisma.post.delete({
+      where: {
+        postId: +postId,
+        authorId: authorId,
+      },
+    });
+
+    return res.status(HTTP_STATUS.OK).json({
+      status: HTTP_STATUS.OK,
+      message: '게시글 삭제가 완료되었습니다.',
+      data,
+    });
   } catch (error) {
     next(error);
   }
