@@ -1,11 +1,11 @@
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
 import { JWT_REFRESH_KEY } from '../constants/auth.constant.js';
 import { prisma } from '../utils/prisma.util.js';
-import bcrypt from 'bcrypt';
 import CustomError from '../utils/custom-error.util.js';
 
-export const authenticateRefreshToken = async (req, res, next) => {
+export const requireRefreshToken = async (req, res, next) => {
   try {
     const authorization = req.headers.authorization;
     if (!authorization) throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '인증정보가 없습니다.');

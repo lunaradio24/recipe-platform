@@ -20,6 +20,7 @@ model User {
   emailVerified             Boolean       @default(false) @map("email_verified")
   emailVerificationToken    String?       @map("email_verification_token")
   socialLoginProvider       String?       @map("social_login_provider")
+  role                      Int           @default(2) @map("role")
   createdAt                 DateTime      @default(now()) @map("created_at")
   updatedAt                 DateTime      @updatedAt @map("updated_at")
 

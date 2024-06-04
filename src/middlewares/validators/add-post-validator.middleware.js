@@ -13,7 +13,7 @@ const schema = Joi.object({
   //imageUrl: // ???? 이것도 여기다가 넣나?
 });
 
-export const postValidator = async (req, res, next) => {
+export const addPostValidator = async (req, res, next) => {
   try {
     await schema.validateAsync(req.body);
     next();
