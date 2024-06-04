@@ -1,6 +1,8 @@
 import Joi from 'joi';
 
 const schema = Joi.object({
+  username: Joi.string().optional(),
+  profileImage: Joi.string().optional(),
   introduction: Joi.string().max(191).messages({ 'string.max': '자기소개는 191자까지 작성할 수 있습니다.' }),
 });
 
