@@ -15,9 +15,9 @@ import {
   JWT_ACCESS_KEY,
   JWT_REFRESH_KEY,
   SALT_ROUNDS,
-  REQUIRED_FIELDS_SIGNUP,
-  EMAIL_REGEX,
-  PASSWORD_MIN_LENGTH,
+  NAVER_CLIENT_ID,
+  NAVER_CLIENT_SECRET,
+  NAVER_REDIRECT_URI,
 } from '../constants/auth.constant.js';
 
 const authRouter = express.Router();
@@ -35,25 +35,10 @@ authRouter.post('/sign-up', signUpValidator, async (req, res, next) => {
   try {
     const { email, password, confirmPassword, username, profileImage, introduction } = req.body;
 
-    // const missingFields = REQUIRED_FIELDS_SIGNUP.filter((field) => !req.body[field]);
-    // if (missingFields.length > 0) {
-    //   throw new CustomError(HTTP_STATUS.BAD_REQUEST, `${missingFields.join(', ')} 를 입력해주세요`);
-    // }
-
-    // if (!EMAIL_REGEX.test(email)) {
-    //   throw new CustomError(HTTP_STATUS.BAD_REQUEST, '이메일 형식이 옳바르지 않습니다.');
-    // }
-
-    // if (password.length < PASSWORD_MIN_LENGTH) {
-    //   throw new CustomError(HTTP_STATUS.BAD_REQUEST, `비밀번호는 ${PASSWORD_MIN_LENGTH}자리 이상이어야 합니다.`);
-    // }
-
+  
     if (password !== confirmPassword) {
       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '입력한 두 비밀번호가 일치하지 않습니다.');
     }
-
-
-
 
     const emailVerificationToken = jwt.sign({ email }, JWT_ACCESS_KEY, { expiresIn: '9h' });
 
@@ -84,7 +69,8 @@ authRouter.post('/sign-up', signUpValidator, async (req, res, next) => {
       해당 인증은 9시간이 지나면 폐기됩니다.</p>`,
     };
 
-    await transporter.sendMail(mailOptions);
+     await transporter.sendMail(mailOptions);
+   
 
     res.status(HTTP_STATUS.CREATED).json({
       message: '회원가입에 성공했습니다. 이메일 인증을 완료해주세요.',
@@ -312,5 +298,70 @@ authRouter.post('/send-verification-email', authenticateToken, async (req, res, 
     next(error);
   }
 });
+
+// 네이버 로그인 엔드포인트
+authRouter.get('/naver', (req, res) => {
+  const state = Math.random().toString(36).substr(2);
+  const apiUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVER_CLIENT_ID}&redirect_uri=${encodeURIComponent(NAVER_REDIRECT_URI)}&state=${state}`;
+  res.redirect(apiUrl);
+});
+
+authRouter.get('/naver/callback', async (req, res, next) => {
+  const { code, state } = req.query;
+
+  try {
+    const tokenResponse = await axios.post(
+      'https://nid.naver.com/oauth2.0/token',
+      querystring.stringify({
+        grant_type: 'authorization_code',
+        client_id: NAVER_CLIENT_ID,
+        client_secret: NAVER_CLIENT_SECRET,
+        code,
+        state,
+      }),
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    );
+
+    const { access_token: accessToken } = tokenResponse.data;
+
+    const userResponse = await axios.get('https://openapi.naver.com/v1/nid/me', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    const { email, nickname: username, profile_image: profileImage } = userResponse.data.response;
+
+    let user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email,
+          password: bcrypt.hashSync(Math.random().toString(36).substr(2), SALT_ROUNDS), // 임시 비밀번호 생성
+          username,
+          profileImage: profileImage || null,
+          emailVerified: true,
+        },
+      });
+    }
+
+    const jwtPayload = { userId: user.userId };
+    const jwtAccessToken = jwt.sign(jwtPayload, JWT_ACCESS_KEY, { expiresIn: '3h' });
+    const jwtRefreshToken = jwt.sign(jwtPayload, JWT_REFRESH_KEY, { expiresIn: '7d' });
+
+    await prisma.refreshToken.upsert({
+      where: { userId: user.userId },
+      update: { token: bcrypt.hashSync(jwtRefreshToken, SALT_ROUNDS) },
+      create: { userId: user.userId, token: bcrypt.hashSync(jwtRefreshToken, SALT_ROUNDS) },
+    });
+
+    res.status(HTTP_STATUS.OK).json({
+      message: '로그인에 성공했습니다.',
+      data: { accessToken: jwtAccessToken, refreshToken: jwtRefreshToken },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 
 export { authRouter };
