@@ -87,14 +87,14 @@ postRouter.get('/', postValidator, async (req, res, next) => {
 
 // 게시글 상세 조회 API
 // req.user는 accessToken을 통해서 인증받은 얘들 가져 올 것이다.
-postRouter.get('/:postid', postValidator, async (req, res, next) => {
+postRouter.get('/:postId', async (req, res, next) => {
   try {
-    const { postid } = req.params;
+    const { postId } = req.params;
 
-    console.log(postid);
+    console.log(postId);
 
     let data = await prisma.post.findUnique({
-      where: { postId: +postid /**authorId: authorId**/ },
+      where: { postId: +postId /**authorId: authorId**/ },
       include: { user: true },
     });
 
@@ -126,7 +126,7 @@ postRouter.get('/:postid', postValidator, async (req, res, next) => {
 });
 
 // 게시글 수정 API
-postRouter.put('/:postId', authenticateToken, postValidator, async (req, res, next) => {
+postRouter.patch('/:postId', authenticateToken, postValidator, async (req, res, next) => {
   try {
     const user = req.user;
     const authorId = user.id;
