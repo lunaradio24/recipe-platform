@@ -80,8 +80,13 @@ commentRouter.get('/:postId/comments', async (req, res, next) => {
 commentRouter.patch('/:postId/comments/:commentId', authenticateToken, commentValidator, async (req, res, next) => {
   try {
     const { userId } = req.user;
-    const { commentId } = req.params;
+    const { postId, commentId } = req.params;
     const { content } = req.body;
+
+    const post = await prisma.post.findFirst({ where: { postId: +postId } });
+    if (!post) {
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 게시글입니다.');
+    }
 
     const comment = await prisma.comment.findFirst({
       where: { commentId: +commentId },
@@ -112,8 +117,12 @@ commentRouter.patch('/:postId/comments/:commentId', authenticateToken, commentVa
 commentRouter.delete('/:postId/comments/:commentId', authenticateToken, async (req, res, next) => {
   try {
     const { userId } = req.user;
-    const { commentId } = req.params;
+    const { postId, commentId } = req.params;
 
+    const post = await prisma.post.findFirst({ where: { postId: +postId } });
+    if (!post) {
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 게시글입니다.');
+    }
     const comment = await prisma.comment.findUnique({
       where: { commentId: +commentId },
     });

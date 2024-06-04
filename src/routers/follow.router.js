@@ -4,6 +4,7 @@ import { HTTP_STATUS } from '../constants/http-status.constant.js';
 import { Prisma } from '@prisma/client';
 import { authenticateToken } from '../middlewares/require-access-token.middleware.js';
 import CustomError from '../utils/custom-error.util.js';
+import { requireEmailVerification } from '../middlewares/require-email-verification.middleware.js';
 
 const followRouter = express.Router();
 
@@ -85,7 +86,7 @@ followRouter.post('/:userId/follow', authenticateToken, async (req, res, next) =
 });
 
 // 팔로워 조회 api
-followRouter.get('/:userId/followers', async (req, res, next) => {
+followRouter.get('/:userId/followers', authenticateToken, requireEmailVerification, async (req, res, next) => {
   try {
     const { userId } = req.params;
     // 팔로워 정보를 볼 user가 DB에 있는지 확인
@@ -123,7 +124,7 @@ followRouter.get('/:userId/followers', async (req, res, next) => {
 });
 
 // 팔로잉 조회 api
-followRouter.get('/:userId/followings', async (req, res, next) => {
+followRouter.get('/:userId/followings', authenticateToken, requireEmailVerification, async (req, res, next) => {
   try {
     const { userId } = req.params;
     // 팔로잉 정보를 볼 user가 DB에 있는지 조회

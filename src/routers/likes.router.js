@@ -78,7 +78,7 @@ likeRouter.put('/:postId/likes', authenticateToken, async (req, res, next) => {
     // 반환 정보
     return res.status(HTTP_STATUS.OK).json({
       status: HTTP_STATUS.OK,
-      message: `게시글에 좋아요를 ${like ? '눌렀' : '취소했'}습니다`,
+      message: `게시글에 좋아요를 ${like ? '취소했' : '눌렀'}습니다`,
     });
 
     // 에러 처리
@@ -122,7 +122,15 @@ likeRouter.get('/:postId/likes', async (req, res, next) => {
 likeRouter.put('/:postId/comments/:commentId/likes', authenticateToken, async (req, res, next) => {
   try {
     const { userId } = req.user;
-    const { commentId } = req.params;
+    const { postId, commentId } = req.params;
+
+    // 해당 게시글 가져오기
+    const post = await prisma.post.findFirst({ where: { postId: +postId } });
+
+    // 해당 게시글이 존재하는지 확인
+    if (!post) {
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 게시글입니다.');
+    }
 
     // 해당 댓글 가져오기
     const comment = await prisma.comment.findFirst({
@@ -189,7 +197,7 @@ likeRouter.put('/:postId/comments/:commentId/likes', authenticateToken, async (r
     // 반환 정보
     return res.status(HTTP_STATUS.CREATED).json({
       status: HTTP_STATUS.CREATED,
-      message: `댓글에 좋아요를 ${like ? '눌렀' : '취소했'}습니다`,
+      message: `댓글에 좋아요를 ${like ? '취소했' : '눌렀'}습니다`,
     });
 
     // 에러 처리
@@ -201,7 +209,15 @@ likeRouter.put('/:postId/comments/:commentId/likes', authenticateToken, async (r
 // 댓글의 좋아요 조회 API
 likeRouter.get('/:postId/comments/:commentId/likes', async (req, res, next) => {
   try {
-    const { commentId } = req.params;
+    const { postId, commentId } = req.params;
+
+    // 해당 게시글 가져오기
+    const post = await prisma.post.findFirst({ where: { postId: +postId } });
+
+    // 해당 게시글이 존재하는지 확인
+    if (!post) {
+      throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 게시글입니다.');
+    }
 
     // 해당 댓글 가져오기
     const comment = await prisma.comment.findFirst({ where: { commentId: +commentId } });
