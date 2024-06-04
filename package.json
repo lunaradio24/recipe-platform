@@ -22,7 +22,8 @@
     "passport-jwt": "^4.0.1",
     "passport-kakao": "^1.0.1",
     "passport-local": "^1.0.0",
-    "prisma": "^5.14.0"
+    "prisma": "^5.14.0",
+    "querystring": "^0.2.1"
   },
   "devDependencies": {
     "joi": "^17.13.1",
