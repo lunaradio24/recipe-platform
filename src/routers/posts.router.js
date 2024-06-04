@@ -9,11 +9,7 @@ const postRouter = express.Router();
 
 // 게시글 작성 API
 // req.user는 accessToken을 통해서 인증받은 얘들 가져 올 것이다.
-<<<<<<< Updated upstream
-postRouter.post('/', postValidator, async (req, res, next) => {
-=======
 postRouter.post('/', postValidator, authenticateToken, async (req, res, next) => {
->>>>>>> Stashed changes
   try {
     const { userId } = req.user;
     console.log(userId);
@@ -128,12 +124,7 @@ postRouter.get('/:postId', async (req, res, next) => {
 });
 
 // 게시글 수정 API
-<<<<<<< Updated upstream
-
-postRouter.patch('/:postId', authenticateToken, postValidator, async (req, res, next) => {
-=======
 postRouter.patch('/:postId', authenticateToken, async (req, res, next) => {
->>>>>>> Stashed changes
   try {
     const user = req.user;
     const authorId = user.id;
