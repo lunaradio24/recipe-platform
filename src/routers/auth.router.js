@@ -1,4 +1,5 @@
 import express from 'express';
+import passport from 'passport';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import CustomError from '../utils/custom-error.util.js';
@@ -52,11 +53,7 @@ authRouter.post('/sign-up', signUpValidator, async (req, res, next) => {
       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '입력한 두 비밀번호가 일치하지 않습니다.');
     }
 
-
-
-
     const emailVerificationToken = jwt.sign({ email }, JWT_ACCESS_KEY, { expiresIn: '9h' });
-
 
     // 이메일 중복 확인
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -133,7 +130,7 @@ authRouter.post('/sign-in', signInValidator, async (req, res, next) => {
 
     return res.status(HTTP_STATUS.OK).json({
       message: '로그인에 성공했습니다.',
-      data: { accessToken, refreshToken},
+      data: { accessToken, refreshToken },
     });
   } catch (error) {
     next(error);
@@ -266,7 +263,6 @@ authRouter.get('/profile', authenticateToken, requireEmailVerification, async (r
   }
 });
 
-
 // 인증 이메일 재발급 api
 authRouter.post('/send-verification-email', authenticateToken, async (req, res, next) => {
   try {
@@ -312,5 +308,17 @@ authRouter.post('/send-verification-email', authenticateToken, async (req, res, 
     next(error);
   }
 });
+
+// 카카오 로그인 api
+authRouter.get('/kakao', passport.authenticate('kakao')); // 요청이 들어온다.
+authRouter.get(
+  '/kakao/callback',
+  passport.authenticate('kakao', {
+    failureRedirect: '/sign-in', // 로그인에 실패했을 경우 해당 라우터로 이동한다
+  }),
+  (req, res) => {
+    res.status(200).redirect('/'); // 로그인에 성공했을 경우, 다음 라우터가 실행된다
+  },
+);
 
 export { authRouter };
