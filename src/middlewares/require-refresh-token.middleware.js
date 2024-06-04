@@ -1,84 +1,44 @@
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
+import { JWT_REFRESH_KEY } from '../constants/auth.constant.js';
 import { prisma } from '../utils/prisma.util.js';
 import bcrypt from 'bcrypt';
-
-dotenv.config();
-
-
-const jwtRefresh = process.env.JWT_REFRESH_KEY;
-
+import CustomError from '../utils/custom-error.util.js';
 
 export const authenticateRefreshToken = async (req, res, next) => {
   try {
     const authorization = req.headers.authorization;
-    //인증정보가 없을시
-    if (!authorization) {
-      return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-        message: '인증정보가 없습니다',
-      });
-    }
+    if (!authorization) throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '인증정보가 없습니다.');
 
     const [type, refreshToken] = authorization.split(' ');
-
     if (type !== 'Bearer' || !refreshToken) {
-      return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-        message: '인증정보가 없습니다',
-      });
+      throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '지원하지 않는 인증 방식입니다.');
     }
 
-    let payload;
+    const { userId } = jwt.verify(refreshToken, JWT_REFRESH_KEY);
 
-    try {
-      payload = jwt.verify(refreshToken, jwtRefresh);
-    } catch (error) {
-      if (error.name === 'TokenExpiredError') {
-        return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-          message: '인증 정보가 만료되었습니다',
-        });
-      } else {
-        return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-          message: '인증 정보가 유효하지 않습니다',
-        });
-      }
-    }
-
-    const { userId } = payload;
-    console.log(userId);
-
-    //db에서 리프레시토큰 조회
+    // DB에서 리프레시토큰 조회
     const existedRefreshToken = await prisma.refreshToken.findUnique({
-      where: {
-        userId: userId,
-      },
+      where: { userId: userId },
     });
-    console.log(existedRefreshToken);
-    //넘겨 받은 리프레시 토큰과 비교
+
+    // 넘겨 받은 리프레시 토큰과 비교
     const isValidRefreshToken =
       existedRefreshToken?.token && (await bcrypt.compare(refreshToken, existedRefreshToken.token));
-    console.log(isValidRefreshToken);
 
-    if (!isValidRefreshToken) {
-      return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-        message: '폐기 된 인증입니다',
-      });
-    }
+    if (!isValidRefreshToken) throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '폐기된 인증 정보입니다.');
 
     const user = await prisma.user.findUnique({
       where: { userId: userId },
       omit: { password: true },
     });
 
-    if (!user) {
-      return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-        message: '인증 정보와 일치하는 사용자가 없습니다',
-      });
-    }
+    if (!user) throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '인증 정보와 일치하는 사용자가 없습니다');
 
     req.user = user;
-
     next();
+
+    // 에러 처리
   } catch (error) {
     next(error);
   }

@@ -2,6 +2,7 @@ import { prisma } from '../utils/prisma.util.js';
 import passport from 'passport';
 import { localStrategy } from './local-strategy.passport.js';
 import { kakaoStrategy } from './kakao-strategy.passport.js';
+import { naverStrategy } from './naver-strategy.passport.js';
 
 export const strategies = () => {
   //시리얼라이즈
@@ -24,4 +25,5 @@ export const strategies = () => {
 
   localStrategy();
   kakaoStrategy();
+  naverStrategy();
 };
