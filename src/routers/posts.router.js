@@ -90,7 +90,7 @@ postRouter.get('/', postValidator, async (req, res, next) => {
 
 // 게시글 상세 조회 API
 // req.user는 accessToken을 통해서 인증받은 얘들 가져 올 것이다.
-postRouter.get('/:postId', postValidator, async (req, res, next) => {
+postRouter.get('/:postid', postValidator, async (req, res, next) => {
   try {
     // const user = req.user;
 
