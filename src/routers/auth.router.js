@@ -33,7 +33,7 @@ async function verifyEmailWithHunter(email) {
 // 회원가입 api
 authRouter.post('/sign-up', signUpValidator, async (req, res, next) => {
   try {
-    const { email, password, confirmPassword, username, profileImage, introduction } = req.body;
+    const { email, password, confirmPassword, username, profileImage, introduction, } = req.body;
 
     // 입력한 두 비밀번호가 일치하는지 확인
     if (password !== confirmPassword) {
@@ -142,19 +142,31 @@ authRouter.post('/sign-in', signInValidator, async (req, res, next) => {
         token: hashedRefreshToken,
       },
     });
-
+    
     // 반환 정보
     return res.status(HTTP_STATUS.OK).json({
       status: HTTP_STATUS.OK,
       message: '로그인에 성공했습니다.',
       data: { accessToken, refreshToken },
+      
     });
-
+    
     // 에러 처리
   } catch (error) {
     next(error);
   }
 });
+
+// 프론트엔드 프로필 확인용 api
+authRouter.get('/me', requireAccessToken, async (req, res, next) => {
+  try {
+      const { email } = req.user; // authenticateToken 미들웨어에서 user 객체에 이메일이 추가된다고 가정
+      return res.status(200).json({ email });
+  } catch (error) {
+      next(error);
+  }
+});
+
 
 // 토큰 재발급 api
 authRouter.post('/renew-tokens', requireRefreshToken, async (req, res, next) => {
@@ -225,8 +237,9 @@ authRouter.get('/verify-email', async (req, res, next) => {
     if (!user) throw new CustomError(HTTP_STATUS.NOT_FOUND, '사용자를 찾을 수 없습니다.');
 
     // 이미 이메일 인증을 완료한 경우
-    if (user.emailVerified) throw new CustomError(HTTP_STATUS.BAD_REQUEST, '이미 이메일 인증이 완료되었습니다.');
-
+    if (user.emailVerified) {
+      return res.redirect('/mail/reverified.html');
+    }
     // 이메일 인증 완료
     await prisma.$transaction(
       async (txn) => {
@@ -246,6 +259,7 @@ authRouter.get('/verify-email', async (req, res, next) => {
 
     // 반환 정보
     res.status(HTTP_STATUS.OK).json({ message: '이메일 인증이 완료되었습니다.' });
+
 
     // 에러 처리
   } catch (error) {

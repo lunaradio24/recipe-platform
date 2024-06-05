@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="/styles.css">
+    <title>로그인</title>
+    <link rel="stylesheet" href="login.css">
 </head>
+
 <body>
     <header>
         <nav>
-            <a href="#" class="logo">맛없없 레시피</a>
+            <a href="index.html" class="logo">맛없없 레시피</a>
         </nav>
     </header>
     <main>
@@ -20,9 +22,77 @@
             <label for="password">비밀번호:</label>
             <input type="password" id="password" name="password" required>
             <button type="submit">로그인</button>
+            <button type="button" class="secondary-button" id="sign-up">회원가입</button>
+            <button type="button" class="naver-button" onclick="redirectToNaver()">네이버 로그인</button>
+            <button type="button" class="kakao-button" onclick="redirectToKakao()">카카오 로그인</button>
             <div id="message"></div>
         </form>
     </main>
-    <script src="/script.js"></script>
+    <script>
+        function redirectToNaver() {
+            window.location.href = 'http://localhost:3000/auth/naver';
+        }
+
+        function redirectToKakao() {
+            window.location.href = 'http://localhost:3000/auth/kakao';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const signupbtn = document.getElementById('sign-up');
+            if (signupbtn) {
+                signupbtn.addEventListener('click', () => {
+                    window.location.href = 'sign-up.html';
+                });
+            }
+        });
+
+        const loginForm = document.getElementById('login-form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                const data = {
+                    email,
+                    password,
+
+                };
+
+                try {
+                    const response = await fetch('/auth/sign-in', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        const accessToken = result.data.accessToken;
+
+
+                        if (accessToken) {
+                            localStorage.setItem('accessToken', accessToken);
+                            document.getElementById('message').innerText = '로그인에 성공했습니다.';
+                            setTimeout(() => {
+                                window.location.href = '/index.html';
+                            }, 2000);
+                        } else {
+                            document.getElementById('message').innerText = '엑세스토큰을 받아오지 못했습니다.';
+                        }
+                    } else {
+                        document.getElementById('message').innerText = result.message || '로그인에 실패했습니다.';
+                    }
+                } catch (error) {
+                    document.getElementById('message').innerText = '서버 오류가 발생했습니다.';
+                }
+            });
+        }
+    </script>
 </body>
+
 </html>

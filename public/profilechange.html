@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로필 수정</title>
+    <link rel="stylesheet" href="profilechange.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">맛없없 레시피</a>
+        </nav>
+    </header>
+    <div class="profile-container">
+        <form id="profileEditForm">
+            <div>
+                <img src="https://mblogthumb-phinf.pstatic.net/MjAyMDA2MTBfMTY1/MDAxNTkxNzQ2ODcyOTI2.Yw5WjjU3IuItPtqbegrIBJr3TSDMd_OPhQ2Nw-0-0ksg.8WgVjtB0fy0RCv0XhhUOOWt90Kz_394Zzb6xPjG6I8gg.PNG.lamute/user.png?type=w800" alt="Profile Picture" class="profile-picture" id="profilePicturePreview">
+                <input type="file" id="profilePicture" accept="image/*">
+            </div>
+            <div>
+                <label for="nickname">닉네임</label>
+                <input type="text" id="nickname" name="nickname">
+            </div>
+            <div>
+                <label for="bio">자기소개</label>
+                <textarea id="bio" name="bio"></textarea>
+            </div>
+            <button type="submit" class="edit-button">저장</button>
+        </form>
+    </div>
+    <script></script>
+</body>
+</html>
