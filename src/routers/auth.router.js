@@ -2,6 +2,7 @@ import express from 'express';
 import passport from 'passport';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import axios from 'axios';
 import CustomError from '../utils/custom-error.util.js';
 import { prisma } from '../utils/prisma.util.js';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
@@ -50,19 +51,8 @@ authRouter.post('/sign-up', isNotLoggedIn, signUpValidator, async (req, res, nex
       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '존재하지 않는 이메일 주소입니다.');
     }
 
-    // const emailVerificationToken = jwt.sign({ email }, process.env.JWT_ACCESS_KEY, { expiresIn: '9h' });
+    const emailVerificationToken = jwt.sign({ email }, process.env.JWT_ACCESS_KEY, { expiresIn: '9h' });
 
-    // 이메일 전송
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: '이메일 인증을 완료해주세요',
-      html: `<p>이메일 인증을 위해 <a href="${process.env.CLIENT_URL}/verify-email?token=${emailVerificationToken}">여기</a>를 클릭해주세요.
-      해당 인증은 9시간이 지나면 폐기됩니다.</p>`,
-    };
-
-    // 이메일 전송 시도
-    await transporter.sendMail(mailOptions);
 
     // 비밀번호 해시화
     const hashedPassword = bcrypt.hashSync(password, parseInt(process.env.SALT_ROUNDS));
@@ -78,8 +68,7 @@ authRouter.post('/sign-up', isNotLoggedIn, signUpValidator, async (req, res, nex
       },
     });
 
-    // 이메일 인증 토큰 생성
-    const emailVerificationToken = jwt.sign({ email }, JWT_EMAIL_KEY, { expiresIn: '9h' });
+   
     // 이메일 인증 링크 발송
     await sendVerificationEmail(email, emailVerificationToken);
 
