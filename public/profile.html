@@ -25,27 +25,28 @@
             // 로컬 스토리지에서 액세스 토큰을 가져옴
             const token = localStorage.getItem('accessToken');
             if (!token) {
-                console.error('Access token is missing');
+                alert('로그인이 필요합니다');
+                window.location.href = 'index.html';
                 return;
             }
 
-            // 액세스 토큰을 이용해 사용자 이메일을 가져오는 API 요청
-            const emailResponse = await fetch('/auth/me', {
+            // 액세스 토큰을 이용해 사용자 ID를 가져오는 API 요청
+            const userIdResponse = await fetch('/auth/me', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            if (!emailResponse.ok) {
-                console.error('Failed to fetch user email');
+            if (!userIdResponse.ok) {
+                console.error('Failed to fetch user ID');
                 return;
             }
 
-            const emailData = await emailResponse.json();
-            const email = emailData.email;
+            const userIdData = await userIdResponse.json();
+            const userId = userIdData.userId;
 
-            // 이메일을 이용해 프로필 데이터를 가져오는 API 요청
-            const url = `/users/${email}`;
+            // 사용자 ID를 이용해 프로필 데이터를 가져오는 API 요청
+            const url = `/users/${userId}`;
             try {
                 const response = await fetch(url);
                 if (!response.ok) {
@@ -55,7 +56,7 @@
                 const user = data.user;
 
                 document.getElementById('nickname').innerText = user.username;
-                document.getElementById('email').innerText = email;
+                document.getElementById('email').innerText = user.email;  // 사용자 이메일 표시
                 document.getElementById('bio').innerText = user.introduction;
                 document.getElementById('followers').innerText = `팔로우 수: ${user.followerCount}`;
 

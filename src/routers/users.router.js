@@ -13,18 +13,19 @@ userRouter.get('/:userId', async (req, res, next) => {
   try {
     const { userId } = req.params;
 
-    //유저 아이디로 닉네임, 프로필이미지, 팔로우 숫자, 소개글 가져오기
+    // 유저 아이디로 닉네임, 프로필 이미지, 팔로우 숫자, 소개글 가져오기
     const user = await prisma.user.findFirst({
-      where: { userId: +userId },
+      where: { userId: Number(userId) }, // userId를 숫자로 변환하여 검색
       select: {
         username: true,
         profileImage: true,
         introduction: true,
         followerCount: true,
+        email: true,
       },
     });
 
-    // 해당 db저가 있는지 확인
+    // 해당 데이터가 있는지 확인
     if (!user) throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 사용자입니다.');
 
     return res.status(HTTP_STATUS.OK).json({
@@ -33,7 +34,6 @@ userRouter.get('/:userId', async (req, res, next) => {
       user,
     });
 
-    //에러 처리 try,catch
   } catch (error) {
     next(error);
   }
