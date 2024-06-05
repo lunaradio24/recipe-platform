@@ -16,7 +16,6 @@ import { isLoggedIn, isNotLoggedIn } from '../middlewares/check-login.middleware
 import {
   JWT_ACCESS_KEY,
   JWT_REFRESH_KEY,
-  JWT_EMAIL_KEY,
   SALT_ROUNDS,
   HUNTER_API_KEY,
 } from '../constants/auth.constant.js';
@@ -53,7 +52,6 @@ authRouter.post('/sign-up', isNotLoggedIn, signUpValidator, async (req, res, nex
 
     const emailVerificationToken = jwt.sign({ email }, process.env.JWT_ACCESS_KEY, { expiresIn: '9h' });
 
-
     // 비밀번호 해시화
     const hashedPassword = bcrypt.hashSync(password, parseInt(process.env.SALT_ROUNDS));
 
@@ -68,7 +66,6 @@ authRouter.post('/sign-up', isNotLoggedIn, signUpValidator, async (req, res, nex
       },
     });
 
-   
     // 이메일 인증 링크 발송
     await sendVerificationEmail(email, emailVerificationToken);
 
@@ -186,7 +183,7 @@ authRouter.post('/renew-tokens', requireRefreshToken, async (req, res, next) => 
 });
 
 // 로그아웃 API
-authRouter.post('/sign-out', isLoggedIn, requireRefreshToken, async (req, res, next) => {
+authRouter.post('/sign-out', requireRefreshToken, isLoggedIn, async (req, res, next) => {
   try {
     const user = req.user;
 
@@ -278,14 +275,14 @@ authRouter.post('/send-verification-email', requireAccessToken, async (req, res,
     // 이미 이메일 인증을 완료한 경우
     if (user.emailVerified) throw new CustomError(HTTP_STATUS.BAD_REQUEST, '이미 이메일 인증이 완료되었습니다.');
 
+    const emailVerificationToken = jwt.sign({ email: user.email }, process.env.JWT_ACCESS_KEY, { expiresIn: '9h' });
+
     // 데이터베이스에 이메일 인증 토큰 업데이트
     await prisma.user.update({
       where: { userId: user.userId },
       data: { emailVerificationToken },
     });
 
-    // 이메일 인증 토큰 생성
-    const emailVerificationToken = jwt.sign({ email: user.email }, JWT_EMAIL_KEY, { expiresIn: '9h' });
     // 이메일 인증 링크 발송
     await sendVerificationEmail(user.email, emailVerificationToken);
 
