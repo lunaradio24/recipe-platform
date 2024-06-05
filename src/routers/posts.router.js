@@ -5,6 +5,7 @@ import { requireAccessToken } from '../middlewares/require-access-token.middlewa
 import { addPostValidator } from '../middlewares/validators/add-post-validator.middleware.js';
 import { editPostValidator } from '../middlewares/validators/edit-post-validator.middleware.js';
 import CustomError from '../utils/custom-error.util.js';
+import { blockRoles } from '../middlewares/block-roles.middleware.js';
 
 const postRouter = express.Router();
 

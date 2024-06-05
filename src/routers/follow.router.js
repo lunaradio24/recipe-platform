@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client';
 import { requireAccessToken } from '../middlewares/require-access-token.middleware.js';
 import CustomError from '../utils/custom-error.util.js';
 import { requireEmailVerification } from '../middlewares/require-email-verification.middleware.js';
+import { blockRoles } from '../middlewares/block-roles.middleware.js';
 
 const followRouter = express.Router();
 

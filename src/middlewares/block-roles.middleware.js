@@ -1,5 +1,5 @@
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
-import { CustomError } from '../utils/custom-error.util.js';
+import CustomError from '../utils/custom-error.util.js';
 import { ROLES } from '../constants/auth.constant.js';
 
 const blockRoles = (blockedRoles) => {

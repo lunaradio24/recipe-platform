@@ -4,6 +4,7 @@ import { prisma } from '../utils/prisma.util.js';
 import { Prisma } from '@prisma/client';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
 import CustomError from '../utils/custom-error.util.js';
+import { blockRoles } from '../middlewares/block-roles.middleware.js';
 
 const likeRouter = express.Router();
 
