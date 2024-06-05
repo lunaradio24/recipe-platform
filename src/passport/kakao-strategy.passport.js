@@ -29,8 +29,8 @@ const kakaoStrategy = () => {
             const newUser = await prisma.user.create({
               data: {
                 email: profile._json.kakao_account.email,
-                username: profile.displayName ?? undefined,
-                profileImage: profile._json.properties.profile_image ?? undefined,
+                username: profile.displayName,
+                profileImage: profile._json.properties.profile_image,
                 emailVerified: true,
                 socialLoginProvider: 'kakao',
               },
