@@ -110,7 +110,7 @@ authRouter.post('/sign-up', isNotLoggedIn, signUpValidator, async (req, res, nex
   }
 });
 
-// 로그인 API
+// 로그인 api
 authRouter.post('/sign-in', isNotLoggedIn, signInValidator, async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -248,15 +248,23 @@ authRouter.post('/send-verification-email', requireAccessToken, async (req, res,
     // 이미 이메일 인증을 완료한 경우
     if (user.emailVerified) throw new CustomError(HTTP_STATUS.BAD_REQUEST, '이미 이메일 인증이 완료되었습니다.');
 
-    // 데이터베이스에 이메일 인증 토큰 업데이트
-    await prisma.user.update({
-      where: { userId: user.userId },
-      data: { emailVerificationToken },
-    });
-
     // 이메일 인증 링크 발송
     const emailVerificationToken = jwt.sign({ email: user.email }, JWT_EMAIL_KEY, { expiresIn: '9h' });
     await sendVerificationEmail(user.email, emailVerificationToken);
+
+    // 데이터베이스에 이메일 인증 토큰 업데이트
+    await prisma.emailCode.upsert({
+      where: { userId: user.userId },
+      update: {
+        emailCode: emailVerificationToken,
+        expiredAt: new Date(Date.now() + 9 * 60 * 60 * 1000),
+      },
+      create: {
+        userId: user.userId,
+        emailCode: emailVerificationToken,
+        expiredAt: new Date(Date.now() + 9 * 60 * 60 * 1000),
+      },
+    });
 
     // 성공 메시지 반환
     res.status(HTTP_STATUS.OK).json({
