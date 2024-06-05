@@ -221,11 +221,22 @@ authRouter.get('/verify-email', async (req, res, next) => {
     // 이미 이메일 인증을 완료한 경우
     if (user.emailVerified) throw new CustomError(HTTP_STATUS.BAD_REQUEST, '이미 이메일 인증이 완료되었습니다.');
 
-    // 사용자 DB에 이메일 인증되었음을 업데이트
-    await prisma.user.update({
-      where: { email: decoded.email },
-      data: { emailVerified: true, emailVerificationToken: null },
-    });
+    // 이메일 인증 완료
+    await prisma.$transaction(
+      async (txn) => {
+        // user DB에 이메일 인증되었음을 업데이트
+        const verifiedUser = await txn.user.update({
+          where: { email: decoded.email },
+          data: { emailVerified: true },
+        });
+        // email_verification_codes DB에서 데이터 삭제
+        await txn.emailCode.delete({
+          where: { userId: verifiedUser.userId },
+        });
+      },
+      //격리 수준 설정
+      { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted },
+    );
 
     // 반환 정보
     res.status(HTTP_STATUS.OK).json({ message: '이메일 인증이 완료되었습니다.' });
