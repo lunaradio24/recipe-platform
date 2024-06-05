@@ -158,14 +158,15 @@ authRouter.post('/sign-in', signInValidator, async (req, res, next) => {
 });
 
 // 프론트엔드 프로필 확인용 api
-authRouter.get('/me', requireAccessToken, async (req, res, next) => {
+authRouter.get('/me',requireAccessToken ,async (req, res, next) => {
   try {
-      const { email } = req.user; // authenticateToken 미들웨어에서 user 객체에 이메일이 추가된다고 가정
-      return res.status(200).json({ email });
-  } catch (error) {
-      next(error);
+    const userId = req.user.userId;
+    return res.status(200).json({userId});
+  }catch(error){
+    next(error);
   }
 });
+
 
 
 // 토큰 재발급 api
@@ -258,8 +259,7 @@ authRouter.get('/verify-email', async (req, res, next) => {
     );
 
     // 반환 정보
-    res.status(HTTP_STATUS.OK).json({ message: '이메일 인증이 완료되었습니다.' });
-
+    return res.redirect('/mail/verified.html');
 
     // 에러 처리
   } catch (error) {

@@ -46,7 +46,7 @@
                 confirmPassword,
                 introduction,
             };
-
+            document.getElementById('message').innerText = '로딩중.....';
             try {
                 const response = await fetch('/auth/sign-up', {
                     method: 'POST',
