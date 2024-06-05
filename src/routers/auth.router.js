@@ -12,8 +12,13 @@ import { sendVerificationEmail } from '../utils/email.util.js';
 import { signUpValidator } from '../middlewares/validators/sign-up-validator.middleware.js';
 import { signInValidator } from '../middlewares/validators/sign-in-validator.middleware.js';
 import { isLoggedIn, isNotLoggedIn } from '../middlewares/check-login.middleware.js';
-import { JWT_ACCESS_KEY, JWT_REFRESH_KEY, JWT_EMAIL_KEY, SALT_ROUNDS,HUNTER_API_KEY } from '../constants/auth.constant.js';
-
+import {
+  JWT_ACCESS_KEY,
+  JWT_REFRESH_KEY,
+  JWT_EMAIL_KEY,
+  SALT_ROUNDS,
+  HUNTER_API_KEY,
+} from '../constants/auth.constant.js';
 
 const authRouter = express.Router();
 
@@ -39,13 +44,13 @@ authRouter.post('/sign-up', isNotLoggedIn, signUpValidator, async (req, res, nex
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) throw new CustomError(HTTP_STATUS.CONFLICT, '이미 가입된 사용자입니다.');
 
-     // 이메일 존재 여부 확인
-     const isEmailValid = await verifyEmailWithHunter(email);
-     if (!isEmailValid) {
-       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '존재하지 않는 이메일 주소입니다.');
-     }
+    // 이메일 존재 여부 확인
+    const isEmailValid = await verifyEmailWithHunter(email);
+    if (!isEmailValid) {
+      throw new CustomError(HTTP_STATUS.BAD_REQUEST, '존재하지 않는 이메일 주소입니다.');
+    }
 
-    const emailVerificationToken = jwt.sign({ email }, process.env.JWT_ACCESS_KEY, { expiresIn: '9h' });
+    // const emailVerificationToken = jwt.sign({ email }, process.env.JWT_ACCESS_KEY, { expiresIn: '9h' });
 
     // 이메일 전송
     const mailOptions = {
@@ -72,7 +77,6 @@ authRouter.post('/sign-up', isNotLoggedIn, signUpValidator, async (req, res, nex
         emailVerificationToken,
       },
     });
-
 
     // 이메일 인증 토큰 생성
     const emailVerificationToken = jwt.sign({ email }, JWT_EMAIL_KEY, { expiresIn: '9h' });
@@ -319,7 +323,6 @@ authRouter.get(
   },
 );
 
-
 // 네이버 로그인 api
 authRouter.get('/naver', passport.authenticate('naver')); // 네이버 로그인 페이지로 이동
 authRouter.get(
@@ -331,6 +334,5 @@ authRouter.get(
     res.status(200).redirect('/'); // 로그인에 성공했을 경우, 다음 라우터가 실행된다
   },
 );
-
 
 export { authRouter };
