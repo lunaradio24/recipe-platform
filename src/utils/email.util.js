@@ -1,23 +1,23 @@
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { EMAIL_USER, EMAIL_PASS, CLIENT_URL } from '../constants/auth.constant';
 
 const transporter = nodemailer.createTransport({
   service: 'Gmail',
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: EMAIL_USER,
+    pass: EMAIL_PASS,
   },
 });
 
 export const sendVerificationEmail = async (email, token) => {
+  // 이메일 발송 옵션
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: EMAIL_USER,
     to: email,
-    subject: 'Email Verification',
-    html: `<p>Click <a href="${process.env.CLIENT_URL}/verify-email?token=${token}">here</a> to verify your email.</p>`,
+    subject: '이메일 인증을 완료해주세요',
+    html: `<p>이메일 인증을 위해 <a href="${CLIENT_URL}/verify-email?token=${token}">여기</a>를 클릭해주세요.
+  해당 인증은 9시간이 지나면 폐기됩니다.</p>`,
   };
-
+  // 이메일 발송
   await transporter.sendMail(mailOptions);
 };

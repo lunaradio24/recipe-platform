@@ -1,18 +1,17 @@
 import express from 'express';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
-import { postValidator } from '../middlewares/validators/post-validator.middleware.js';
 import { prisma } from '../utils/prisma.util.js';
+import { requireAccessToken } from '../middlewares/require-access-token.middleware.js';
+import { addPostValidator } from '../middlewares/validators/add-post-validator.middleware.js';
+import { editPostValidator } from '../middlewares/validators/edit-post-validator.middleware.js';
 import CustomError from '../utils/custom-error.util.js';
-import { authenticateToken } from '../middlewares/require-access-token.middleware.js';
-import { editpostValidator } from '../middlewares/validators/edit-post-validator.middleware.js';
+
 const postRouter = express.Router();
 
 // 게시글 작성 API
-// req.user는 accessToken을 통해서 인증받은 얘들 가져 올 것이다.
-postRouter.post('/', postValidator, authenticateToken, async (req, res, next) => {
+postRouter.post('/', requireAccessToken, blockRoles(['BLACKLIST']), addPostValidator, async (req, res, next) => {
   try {
     const { userId } = req.user;
-    console.log(userId);
     const { title, content, imageUrl } = req.body;
 
     const data = await prisma.post.create({
@@ -35,29 +34,27 @@ postRouter.post('/', postValidator, authenticateToken, async (req, res, next) =>
 });
 
 // 게시글 목록 조회 API
-// req.user는 accessToken을 통해서 인증받은 얘들 가져 올 것이다.
 postRouter.get('/', async (req, res, next) => {
   try {
     // 내림차순
     let { sort } = req.query;
-
-    sort = sort?.toLocaleLowerCase();
+    sort = sort?.toLowerCase();
 
     if (sort !== 'desc' && sort !== 'asc') {
       sort = 'desc';
     }
 
+    // 게시글 목록 조회
     let data = await prisma.post.findMany({
-      //where: { authorId },
       orderBy: {
         createdAt: sort,
       },
       include: {
-        // user  User @relation(fields: [authorId], references: [userId], onDelete: Cascade)
         user: true,
       },
     });
 
+    // 평탄화
     data = data.map((post) => {
       return {
         postId: post.postId,
@@ -71,25 +68,23 @@ postRouter.get('/', async (req, res, next) => {
       };
     });
 
+    // 반환 정보
     return res.status(HTTP_STATUS.OK).json({
       status: HTTP_STATUS.OK,
       message: '목록조회를 성공했습니다.',
       data,
     });
 
-    next();
+    // 에러 처리
   } catch (error) {
     next(error);
   }
 });
 
 // 게시글 상세 조회 API
-// req.user는 accessToken을 통해서 인증받은 얘들 가져 올 것이다.
 postRouter.get('/:postId', async (req, res, next) => {
   try {
     const { postId } = req.params;
-
-    console.log(postId);
 
     let data = await prisma.post.findUnique({
       where: { postId: +postId /**authorId: authorId**/ },
@@ -124,52 +119,60 @@ postRouter.get('/:postId', async (req, res, next) => {
 });
 
 // 게시글 수정 API
-postRouter.patch('/:postId', editpostValidator, authenticateToken, async (req, res, next) => {
-  try {
-    const user = req.user;
-    const authorId = user.id;
-    const { postId } = req.params;
+postRouter.patch(
+  '/:postId',
+  requireAccessToken,
+  blockRoles(['BLACKLIST']),
+  editPostValidator,
+  async (req, res, next) => {
+    try {
+      const user = req.user;
+      const authorId = user.id;
+      const { postId } = req.params;
 
-    const { title, content, imageUrl } = req.body;
+      const { title, content, imageUrl } = req.body;
 
-    const existedPost = await prisma.post.findFirst({
-      where: { authorId: authorId, postId: +postId },
-    });
+      const existedPost = await prisma.post.findFirst({
+        where: { authorId: authorId, postId: +postId },
+      });
 
-    if (!existedPost) {
-      return res.status(HTTP_STATUS.NOT_FOUND).json({
-        status: HTTP_STATUS.NOT_FOUND,
-        message: '게시글을 찾지 못했습니다.',
+      if (!existedPost) {
+        return res.status(HTTP_STATUS.NOT_FOUND).json({
+          status: HTTP_STATUS.NOT_FOUND,
+          message: '게시글을 찾지 못했습니다.',
+          data,
+        });
+      }
+
+      // 게시글 수정
+      const data = await prisma.post.update({
+        where: {
+          postId: +postId, // 수정이니까 작성자가 맞는지 post의 id가 데이터 테이블 속 id랑 맞는지 확인
+          authorId: authorId, // 수정이니까 작성자가 맞는지 작성자의 id가 데이터 테이블 속 id랑 맞는지 확인
+        },
+        data: {
+          title: title,
+          content: content,
+          imageUrl: imageUrl,
+        },
+      });
+
+      // 반환 정보
+      return res.status(HTTP_STATUS.OK).json({
+        status: HTTP_STATUS.OK,
+        message: '게시글 수정이 완료되었습니다.',
         data,
       });
+
+      // 에러 처리
+    } catch (error) {
+      next(error);
     }
-
-    const data = await prisma.post.update({
-      where: {
-        postId: +postId, // 수정이니까 작성자가 맞는지 post의 id가 데이터 테이블 속 id랑 맞는지 확인
-        authorId: authorId, // 수정이니까 작성자가 맞는지 작성자의 id가 데이터 테이블 속 id랑 맞는지 확인
-      },
-      data: {
-        title: title,
-        content: content,
-        imageUrl: imageUrl,
-      },
-    });
-
-    return res.status(HTTP_STATUS.OK).json({
-      status: HTTP_STATUS.OK,
-      message: '게시글 수정이 완료되었습니다.',
-      data,
-    });
-
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // 게시글 삭제 API
-postRouter.delete('/:postId', authenticateToken, async (req, res, next) => {
+postRouter.delete('/:postId', requireAccessToken, blockRoles(['BLACKLIST']), async (req, res, next) => {
   try {
     const user = req.user;
     const authorId = user.id;
@@ -187,6 +190,7 @@ postRouter.delete('/:postId', authenticateToken, async (req, res, next) => {
       });
     }
 
+    // 게시글 삭제
     const data = await prisma.post.delete({
       where: {
         postId: +postId,
@@ -194,11 +198,14 @@ postRouter.delete('/:postId', authenticateToken, async (req, res, next) => {
       },
     });
 
+    // 반환 정보
     return res.status(HTTP_STATUS.OK).json({
       status: HTTP_STATUS.OK,
       message: '게시글 삭제가 완료되었습니다.',
       data,
     });
+
+    // 에러 처리
   } catch (error) {
     next(error);
   }

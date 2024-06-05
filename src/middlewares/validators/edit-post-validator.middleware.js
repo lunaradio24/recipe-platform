@@ -10,7 +10,7 @@ const schema = Joi.object({
     'object.min': '수정할 내용을 입력해주세요.',
   });
 
-export const editpostValidator = async (req, res, next) => {
+export const editPostValidator = async (req, res, next) => {
   try {
     await schema.validateAsync(req.body);
     next();

@@ -1,66 +1,31 @@
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
+import { JWT_ACCESS_KEY } from '../constants/auth.constant.js';
 import { prisma } from '../utils/prisma.util.js';
+import CustomError from '../utils/custom-error.util.js';
 
-dotenv.config();
-
-const jwtSecret = process.env.JWT_ACCESS_KEY;
-
-export const authenticateToken = async (req, res, next) => {
+export const requireAccessToken = async (req, res, next) => {
   try {
     const authorization = req.headers.authorization;
-
-    if (!authorization) {
-      return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-        message: '인증정보가 없습니다',
-      });
-    }
+    if (!authorization) throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '인증정보가 없습니다');
 
     const [type, accessToken] = authorization.split(' ');
+    if (type !== 'Bearer') throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '지원하지 않는 인증 방식입니다.');
+    if (!accessToken) throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '인증정보가 없습니다.');
 
-    if (type !== 'Bearer') {
-      return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-        message: '인증정보가 없습니다',
-      });
-    }
-    if (!accessToken) {
-      return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-        message: '인증 정보가 없습니다',
-      });
-    }
+    const payload = jwt.verify(accessToken, JWT_ACCESS_KEY);
 
-    let payload;
-
-    try {
-      payload = jwt.verify(accessToken, jwtSecret);
-    } catch (error) {
-      if (error.name === 'TokenExpiredError') {
-        return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-          message: '인증 정보가 만료되었습니다',
-        });
-      } else {
-        return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-          message: '인증 정보가 유효하지 않습니다',
-        });
-      }
-    }
-
-    const { userId } = payload;
     const user = await prisma.user.findUnique({
-      where: { userId: userId },
+      where: { userId: payload.userId },
       omit: { password: true },
     });
 
-    if (!user) {
-      return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-        message: '인증 정보와 일치하는 사용자가 없습니다',
-      });
-    }
+    if (!user) throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '인증 정보와 일치하는 사용자가 없습니다');
 
     req.user = user;
-
     next();
+
+    // 에러 처리
   } catch (error) {
     next(error);
   }
