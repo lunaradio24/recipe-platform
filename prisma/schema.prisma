@@ -12,7 +12,7 @@ model User {
   userId                    Int             @id @default(autoincrement()) @map("user_id")
   email                     String          @unique @map("email")
   password                  String?         @map("password")
-  username                  String          @map("username")
+  username                  String?         @map("username")
   profileImage              String?         @map("profile_image")
   introduction              String?         @map("introduction")
   followerCount             Int             @default(0) @map("follower_count")

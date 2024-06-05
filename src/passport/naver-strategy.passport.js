@@ -29,8 +29,8 @@ const naverStrategy = () => {
             const newUser = await prisma.user.create({
               data: {
                 email: profile._json.email,
-                username: profile.displayName ?? undefined,
-                profileImage: profile._json.profile_image ?? undefined,
+                username: profile.displayName,
+                profileImage: profile._json.profile_image,
                 emailVerified: true,
                 socialLoginProvider: 'naver',
               },

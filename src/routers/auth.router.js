@@ -13,7 +13,6 @@ import { requireEmailVerification } from '../middlewares/require-email-verificat
 import { sendVerificationEmail } from '../utils/email.util.js';
 import { signUpValidator } from '../middlewares/validators/sign-up-validator.middleware.js';
 import { signInValidator } from '../middlewares/validators/sign-in-validator.middleware.js';
-import { isLoggedIn, isNotLoggedIn } from '../middlewares/check-login.middleware.js';
 import {
   JWT_ACCESS_KEY,
   JWT_REFRESH_KEY,
@@ -25,14 +24,14 @@ import {
 
 const authRouter = express.Router();
 
-// 회원가입 api
 async function verifyEmailWithHunter(email) {
   const url = `https://api.hunter.io/v2/email-verifier?email=${email}&api_key=${HUNTER_API_KEY}`;
   const response = await axios.get(url);
   return response.data.data.result === 'deliverable';
 }
 
-authRouter.post('/sign-up', isNotLoggedIn, signUpValidator, async (req, res, next) => {
+// 회원가입 api
+authRouter.post('/sign-up', signUpValidator, async (req, res, next) => {
   try {
     const { email, password, confirmPassword, username, profileImage, introduction } = req.body;
 
@@ -113,13 +112,16 @@ authRouter.post('/sign-up', isNotLoggedIn, signUpValidator, async (req, res, nex
 });
 
 // 로그인 api
-authRouter.post('/sign-in', isNotLoggedIn, signInValidator, async (req, res, next) => {
+authRouter.post('/sign-in', signInValidator, async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const user = await prisma.user.findUnique({ where: { email } });
 
+    // 입력한 이메일 계정이 존재하는지 확인
+    if (!user) throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '존재하지 않는 계정입니다.');
+
     // 입력한 비밀번호가 DB의 비밀번호와 일치하는지 확인
-    if (!user || !bcrypt.compareSync(password, user.password)) {
+    if (!bcrypt.compareSync(password, user.password)) {
       throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '인증정보가 유효하지 않습니다.');
     }
 
@@ -190,7 +192,7 @@ authRouter.post('/renew-tokens', requireRefreshToken, async (req, res, next) => 
 });
 
 // 로그아웃 API
-authRouter.post('/sign-out', requireRefreshToken, isLoggedIn, async (req, res, next) => {
+authRouter.post('/sign-out', requireRefreshToken, async (req, res, next) => {
   try {
     const user = req.user;
 
@@ -216,7 +218,7 @@ authRouter.post('/sign-out', requireRefreshToken, isLoggedIn, async (req, res, n
 authRouter.get('/verify-email', async (req, res, next) => {
   try {
     const { token } = req.query;
-    const decoded = jwt.verify(token, JWT_ACCESS_KEY);
+    const decoded = jwt.verify(token, JWT_EMAIL_KEY);
     const user = await prisma.user.findUnique({ where: { email: decoded.email } });
 
     // 사용자가 존재하지 않는 경우
@@ -293,10 +295,11 @@ authRouter.post('/send-verification-email', requireAccessToken, async (req, res,
 });
 
 // 카카오 로그인 api
-authRouter.get('/kakao', passport.authenticate('kakao')); // 카카오 로그인 페이지로 이동
+authRouter.get('/kakao', passport.authenticate('kakao', { session: false })); // 카카오 로그인 페이지로 이동
 authRouter.get(
   '/kakao/callback',
   passport.authenticate('kakao', {
+    session: false,
     failureRedirect: '/?error=로그인실패', // 로그인에 실패했을 경우 해당 라우터로 이동한다
   }),
   async (req, res, next) => {
@@ -326,10 +329,11 @@ authRouter.get(
 );
 
 // 네이버 로그인 api
-authRouter.get('/naver', passport.authenticate('naver')); // 네이버 로그인 페이지로 이동
+authRouter.get('/naver', passport.authenticate('naver', { session: false })); // 네이버 로그인 페이지로 이동
 authRouter.get(
   '/naver/callback',
   passport.authenticate('naver', {
+    session: false,
     failureRedirect: '/?error=로그인실패', // 로그인에 실패했을 경우 해당 라우터로 이동한다
   }),
   async (req, res, next) => {
