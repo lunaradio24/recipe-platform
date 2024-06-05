@@ -6,33 +6,66 @@ import { addPostValidator } from '../middlewares/validators/add-post-validator.m
 import { editPostValidator } from '../middlewares/validators/edit-post-validator.middleware.js';
 import CustomError from '../utils/custom-error.util.js';
 import { blockRoles } from '../middlewares/block-roles.middleware.js';
+import multer from 'multer';
+import multerS3 from 'multer-s3';
+import { S3Client } from '@aws-sdk/client-s3';
+import { S3_ACCESS_KEY, S3_SECRET_ACCESS_KEY, AWS_BUCKET } from '../constants/env.constant.js';
 
 const postRouter = express.Router();
 
-// 게시글 작성 API
-postRouter.post('/', requireAccessToken, blockRoles(['BLACKLIST']), addPostValidator, async (req, res, next) => {
-  try {
-    const { userId } = req.user;
-    const { title, content, imageUrl } = req.body;
-
-    const data = await prisma.post.create({
-      data: {
-        authorId: userId,
-        title,
-        content,
-        imageUrl,
-      },
-    });
-
-    return res.status(HTTP_STATUS.CREATED).json({
-      status: HTTP_STATUS.CREATED,
-      message: '게시글을 작성 했습니다.',
-      data,
-    });
-  } catch (error) {
-    next(error);
-  }
+const s3 = new S3Client({
+  region: 'ap-northeast-2',
+  credentials: {
+    accessKeyId: S3_ACCESS_KEY,
+    secretAccessKey: S3_SECRET_ACCESS_KEY,
+  },
 });
+
+const uploadImage = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: AWS_BUCKET,
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: (req, file, callback) => {
+      const fileName = `${Date.now()}_${file.originalname}`;
+      callback(null, `folder/${fileName}`);
+    },
+    acl: `public-read-write`,
+  }),
+});
+
+// 게시글 작성 API
+postRouter.post(
+  '/',
+  requireAccessToken,
+  blockRoles(['BLACKLIST']),
+  uploadImage.single('image'),
+  addPostValidator,
+  async (req, res, next) => {
+    try {
+      const { userId } = req.user;
+      const { title, content } = req.body;
+      const imageUrl = req.file ? req.file.location : null;
+
+      const data = await prisma.post.create({
+        data: {
+          authorId: userId,
+          title,
+          content,
+          imageUrl,
+        },
+      });
+
+      return res.status(HTTP_STATUS.CREATED).json({
+        status: HTTP_STATUS.CREATED,
+        message: '게시글을 작성 했습니다.',
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // 게시글 목록 조회 API
 postRouter.get('/', async (req, res, next) => {
