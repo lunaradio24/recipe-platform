@@ -9,30 +9,50 @@ datasource db {
 }
 
 model User {
+  userId                    Int             @id @default(autoincrement()) @map("user_id")
+  email                     String          @unique @map("email")
+  password                  String?         @map("password")
+  username                  String          @map("username")
+  profileImage              String?         @map("profile_image")
+  introduction              String?         @map("introduction")
+  followerCount             Int             @default(0) @map("follower_count")
+  emailVerified             Boolean         @default(false) @map("email_verified")
+  socialLoginProvider       String?         @map("social_login_provider")
+  role                      Int             @default(2) @map("role")
+  createdAt                 DateTime        @default(now()) @map("created_at")
+  updatedAt                 DateTime        @updatedAt @map("updated_at")
 
-  userId                    Int           @id @default(autoincrement()) @map("user_id")
-  email                     String        @unique @map("email")
-  password                  String?       @map("password")
-  username                  String        @map("username")
-  profileImage              String?       @map("profile_image")
-  introduction              String?       @map("introduction")
-  followerCount             Int           @default(0) @map("follower_count")
-  emailVerified             Boolean       @default(false) @map("email_verified")
-  emailVerificationToken    String?       @map("email_verification_token")
-  socialLoginProvider       String?       @map("social_login_provider")
-  role                      Int           @default(2) @map("role")
-  createdAt                 DateTime      @default(now()) @map("created_at")
-  updatedAt                 DateTime      @updatedAt @map("updated_at")
-
+  emailCode                 EmailCode?
+  authCode                  AuthCode?
+  refreshToken              RefreshToken?
   post                      Post[]
   comment                   Comment[]
   postLike                  PostLike[]
   commentLike               CommentLike[]
-  refreshToken              RefreshToken?
-  following                 Follow[]      @relation("following")
-  follower                  Follow[]      @relation("follower")
+  following                 Follow[]        @relation("following")
+  follower                  Follow[]        @relation("follower")
 
   @@map("users")
+}
+
+model EmailCode {
+  userId              Int           @id @map("user_id")
+  emailCode           String        @map("email_code")
+  expiredAt           DateTime      @map("expired_at")
+
+  user                User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("email_verification_codes")
+}
+
+model AuthCode {
+  userId              Int           @id @map("user_id")
+  sessionCode         String        @map("session_code")
+  expiredAt           DateTime      @map("expired_at")
+
+  user                User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("auth_codes")
 }
 
 model Post {

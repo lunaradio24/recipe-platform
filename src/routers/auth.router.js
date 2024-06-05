@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import axios from 'axios';
 import CustomError from '../utils/custom-error.util.js';
 import { prisma } from '../utils/prisma.util.js';
+import { Prisma } from '@prisma/client';
 import { HTTP_STATUS } from '../constants/http-status.constant.js';
 import { requireAccessToken } from '../middlewares/require-access-token.middleware.js';
 import { requireRefreshToken } from '../middlewares/require-refresh-token.middleware.js';
@@ -16,6 +17,7 @@ import { isLoggedIn, isNotLoggedIn } from '../middlewares/check-login.middleware
 import {
   JWT_ACCESS_KEY,
   JWT_REFRESH_KEY,
+  JWT_EMAIL_KEY,
   SALT_ROUNDS,
   HUNTER_API_KEY,
 } from '../constants/auth.constant.js';
@@ -23,7 +25,6 @@ import {
 const authRouter = express.Router();
 
 // 회원가입 api
-
 async function verifyEmailWithHunter(email) {
   const url = `https://api.hunter.io/v2/email-verifier?email=${email}&api_key=${HUNTER_API_KEY}`;
   const response = await axios.get(url);
@@ -35,7 +36,6 @@ authRouter.post('/sign-up', isNotLoggedIn, signUpValidator, async (req, res, nex
     const { email, password, confirmPassword, username, profileImage, introduction } = req.body;
 
     // 입력한 두 비밀번호가 일치하는지 확인
-
     if (password !== confirmPassword) {
       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '입력한 두 비밀번호가 일치하지 않습니다.');
     }
@@ -50,27 +50,47 @@ authRouter.post('/sign-up', isNotLoggedIn, signUpValidator, async (req, res, nex
       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '존재하지 않는 이메일 주소입니다.');
     }
 
-    const emailVerificationToken = jwt.sign({ email }, process.env.JWT_ACCESS_KEY, { expiresIn: '9h' });
-
-    // 비밀번호 해시화
-    const hashedPassword = bcrypt.hashSync(password, parseInt(process.env.SALT_ROUNDS));
-
-    const newUser = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        username,
-        profileImage: profileImage || null,
-        introduction: introduction || null,
-        emailVerificationToken,
-      },
-    });
-
     // 이메일 인증 링크 발송
+    const emailVerificationToken = jwt.sign({ email }, JWT_EMAIL_KEY, { expiresIn: '9h' });
     await sendVerificationEmail(email, emailVerificationToken);
 
-    // 반환 정보
+    // 비밀번호 해시화
+    const hashedPassword = bcrypt.hashSync(password, SALT_ROUNDS);
 
+    // user 데이터 생성과 email 인증 토큰 생성을 transaction으로 처리
+    const newUser = await prisma.$transaction(
+      async (txn) => {
+        // user 데이터 생성
+        const newUser = await txn.user.create({
+          data: {
+            email,
+            password: hashedPassword,
+            username,
+            profileImage: profileImage || null,
+            introduction: introduction || null,
+          },
+        });
+
+        // 이메일 인증 코드 토큰 생성
+        await txn.emailCode.upsert({
+          where: { userId: newUser.userId },
+          update: {
+            emailCode: emailVerificationToken,
+            expiredAt: new Date(Date.now() + 9 * 60 * 60 * 1000),
+          },
+          create: {
+            userId: newUser.userId,
+            emailCode: emailVerificationToken,
+            expiredAt: new Date(Date.now() + 9 * 60 * 60 * 1000),
+          },
+        });
+        return newUser;
+      },
+      //격리 수준 설정
+      { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted },
+    );
+
+    // 반환 정보
     res.status(HTTP_STATUS.CREATED).json({
       message: '회원가입에 성공했습니다. 이메일 인증을 완료해주세요.',
       data: {
@@ -123,23 +143,6 @@ authRouter.post('/sign-in', isNotLoggedIn, signInValidator, async (req, res, nex
     return res.status(HTTP_STATUS.OK).json({
       message: '로그인에 성공했습니다.',
       data: { accessToken, refreshToken },
-    });
-
-    // 에러 처리
-  } catch (error) {
-    next(error);
-  }
-});
-
-// 유저 확인 api
-authRouter.get('/user', requireAccessToken, (req, res) => {
-  try {
-    if (!req.user) throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '인증정보가 유효하지 않습니다.');
-
-    // 반환 정보
-    res.status(HTTP_STATUS.OK).json({
-      message: '이곳은 보호된 경로입니다.',
-      user: req.user,
     });
 
     // 에러 처리
@@ -233,36 +236,6 @@ authRouter.get('/verify-email', async (req, res, next) => {
   }
 });
 
-// 사용자 프로필 조회 with 이메일 인증
-authRouter.get('/profile', requireAccessToken, requireEmailVerification, async (req, res, next) => {
-  try {
-    // 현재 로그인된 사용자의 정보를 데이터베이스에서 조회
-    const user = await prisma.user.findUnique({
-      where: { userId: req.user.userId },
-      select: {
-        email: true,
-        username: true,
-        profileImage: true,
-        introduction: true,
-        followerCount: true,
-      },
-    });
-
-    // 사용자가 존재하지 않는 경우
-    if (!user) throw new CustomError(HTTP_STATUS.NOT_FOUND, '사용자를 찾을 수 없습니다.');
-
-    // 반환 정보
-    res.status(HTTP_STATUS.OK).json({
-      message: '이메일 인증이 완료된 유저입니다',
-      data: user,
-    });
-
-    // 에러 처리
-  } catch (error) {
-    next(error);
-  }
-});
-
 // 인증 이메일 재발급 api
 authRouter.post('/send-verification-email', requireAccessToken, async (req, res, next) => {
   try {
@@ -275,8 +248,6 @@ authRouter.post('/send-verification-email', requireAccessToken, async (req, res,
     // 이미 이메일 인증을 완료한 경우
     if (user.emailVerified) throw new CustomError(HTTP_STATUS.BAD_REQUEST, '이미 이메일 인증이 완료되었습니다.');
 
-    const emailVerificationToken = jwt.sign({ email: user.email }, process.env.JWT_ACCESS_KEY, { expiresIn: '9h' });
-
     // 데이터베이스에 이메일 인증 토큰 업데이트
     await prisma.user.update({
       where: { userId: user.userId },
@@ -284,6 +255,7 @@ authRouter.post('/send-verification-email', requireAccessToken, async (req, res,
     });
 
     // 이메일 인증 링크 발송
+    const emailVerificationToken = jwt.sign({ email: user.email }, JWT_EMAIL_KEY, { expiresIn: '9h' });
     await sendVerificationEmail(user.email, emailVerificationToken);
 
     // 성공 메시지 반환
@@ -304,8 +276,25 @@ authRouter.get(
   passport.authenticate('kakao', {
     failureRedirect: '/?error=로그인실패', // 로그인에 실패했을 경우 해당 라우터로 이동한다
   }),
-  (req, res, next) => {
-    res.status(200).redirect('/'); // 로그인에 성공했을 경우, 다음 라우터가 실행된다
+  async (req, res, next) => {
+    // userId 정보를 payload에 넣어 JWT 생성
+    const payload = { userId: user.userId };
+    const accessToken = jwt.sign(payload, JWT_ACCESS_KEY, { expiresIn: '3h' });
+    const refreshToken = jwt.sign(payload, JWT_REFRESH_KEY, { expiresIn: '7d' });
+
+    // 비밀번호는 hash 처리해서 DB에 저장
+    const hashedRefreshToken = bcrypt.hashSync(refreshToken, SALT_ROUNDS);
+
+    await prisma.refreshToken.upsert({
+      where: { userId: user.userId },
+      update: { token: hashedRefreshToken },
+
+      create: {
+        userId: user.userId,
+        token: hashedRefreshToken,
+      },
+    });
+    res.status(200).redirect('/?access='); // 로그인에 성공했을 경우, 다음 라우터가 실행된다
   },
 );
 
@@ -316,7 +305,7 @@ authRouter.get(
   passport.authenticate('naver', {
     failureRedirect: '/?error=로그인실패', // 로그인에 실패했을 경우 해당 라우터로 이동한다
   }),
-  (req, res, next) => {
+  async (req, res, next) => {
     res.status(200).redirect('/'); // 로그인에 성공했을 경우, 다음 라우터가 실행된다
   },
 );
