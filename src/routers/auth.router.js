@@ -19,9 +19,7 @@ import {
   JWT_ACCESS_KEY,
   JWT_REFRESH_KEY,
   SALT_ROUNDS,
-  REQUIRED_FIELDS_SIGNUP,
-  EMAIL_REGEX,
-  PASSWORD_MIN_LENGTH,
+  HUNTER_API_KEY,
 } from '../constants/auth.constant.js';
 
 const authRouter = express.Router();
@@ -35,35 +33,46 @@ const transporter = nodemailer.createTransport({
 });
 
 // 회원가입 api
+async function verifyEmailWithHunter(email) {
+  const url = `https://api.hunter.io/v2/email-verifier?email=${email}&api_key=${HUNTER_API_KEY}`;
+  const response = await axios.get(url);
+  return response.data.data.result === 'deliverable';
+}
+
 authRouter.post('/sign-up', signUpValidator, async (req, res, next) => {
+  const { email, password, confirmPassword, username, profileImage, introduction } = req.body;
+
   try {
-    const { email, password, confirmPassword, username, profileImage, introduction } = req.body;
-
-    // const missingFields = REQUIRED_FIELDS_SIGNUP.filter((field) => !req.body[field]);
-    // if (missingFields.length > 0) {
-    //   throw new CustomError(HTTP_STATUS.BAD_REQUEST, `${missingFields.join(', ')} 를 입력해주세요`);
-    // }
-
-    // if (!EMAIL_REGEX.test(email)) {
-    //   throw new CustomError(HTTP_STATUS.BAD_REQUEST, '이메일 형식이 옳바르지 않습니다.');
-    // }
-
-    // if (password.length < PASSWORD_MIN_LENGTH) {
-    //   throw new CustomError(HTTP_STATUS.BAD_REQUEST, `비밀번호는 ${PASSWORD_MIN_LENGTH}자리 이상이어야 합니다.`);
-    // }
-
     if (password !== confirmPassword) {
       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '입력한 두 비밀번호가 일치하지 않습니다.');
     }
-
-    const emailVerificationToken = jwt.sign({ email }, JWT_ACCESS_KEY, { expiresIn: '9h' });
 
     // 이메일 중복 확인
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) throw new CustomError(HTTP_STATUS.CONFLICT, '이미 가입된 사용자입니다.');
 
+     // 이메일 존재 여부 확인
+     const isEmailValid = await verifyEmailWithHunter(email);
+     if (!isEmailValid) {
+       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '존재하지 않는 이메일 주소입니다.');
+     }
+
+    const emailVerificationToken = jwt.sign({ email }, process.env.JWT_ACCESS_KEY, { expiresIn: '9h' });
+
+    // 이메일 전송
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: '이메일 인증을 완료해주세요',
+      html: `<p>이메일 인증을 위해 <a href="${process.env.CLIENT_URL}/verify-email?token=${emailVerificationToken}">여기</a>를 클릭해주세요.
+      해당 인증은 9시간이 지나면 폐기됩니다.</p>`,
+    };
+
+    // 이메일 전송 시도
+    await transporter.sendMail(mailOptions);
+
     // 비밀번호 해시화
-    const hashedPassword = bcrypt.hashSync(password, SALT_ROUNDS);
+    const hashedPassword = bcrypt.hashSync(password, parseInt(process.env.SALT_ROUNDS));
 
     const newUser = await prisma.user.create({
       data: {
@@ -75,16 +84,6 @@ authRouter.post('/sign-up', signUpValidator, async (req, res, next) => {
         emailVerificationToken,
       },
     });
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: '이메일 인증을 완료해주세요',
-      html: `<p>이메일 인증을 위해 <a href="${process.env.CLIENT_URL}/verify-email?token=${emailVerificationToken}">여기</a>를 클릭해주세요.
-      해당 인증은 9시간이 지나면 폐기됩니다.</p>`,
-    };
-
-    await transporter.sendMail(mailOptions);
 
     res.status(HTTP_STATUS.CREATED).json({
       message: '회원가입에 성공했습니다. 이메일 인증을 완료해주세요.',
@@ -98,7 +97,6 @@ authRouter.post('/sign-up', signUpValidator, async (req, res, next) => {
         updatedAt: newUser.updatedAt,
       },
     });
-    // 에러 핸들러로 에러 전달
   } catch (err) {
     next(err);
   }
@@ -380,13 +378,11 @@ authRouter.get('/naver/callback', async (req, res, next) => {
       create: { userId: user.userId, token: bcrypt.hashSync(jwtRefreshToken, SALT_ROUNDS) },
     });
 
-    res.status(HTTP_STATUS.OK).json({
-      message: '로그인에 성공했습니다.',
-      data: { accessToken: jwtAccessToken, refreshToken: jwtRefreshToken },
-    });
-  } catch (error) {
-    next(error);
-  }
+     // 로그인 성공 후 http://localhost:3000으로 리디렉션
+     res.redirect('http://localhost:3000');
+    } catch (error) {
+      next(error);
+    }
 });
 
 export { authRouter };

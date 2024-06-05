@@ -14,3 +14,4 @@ export const NAVER_REDIRECT_URI = process.env.NAVER_REDIRECT_URI;
 export const KAKAO_ID = process.env.KAKAO_ID;
 export const KAKAO_CLIENT_SECRET = process.env.KAKAO_CLIENT_SECRET;
 
+export const HUNTER_API_KEY = process.env.HUNTER_API_KEY;
