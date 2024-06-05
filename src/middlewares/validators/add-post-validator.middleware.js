@@ -10,8 +10,6 @@ const schema = Joi.object({
   content: Joi.string().required().messages({
     'any.required': '등록할 댓글의 내용을 입력해주세요.',
   }),
-
-  //imageUrl: // ???? 이것도 여기다가 넣나?
 });
 
 export const addPostValidator = async (req, res, next) => {
