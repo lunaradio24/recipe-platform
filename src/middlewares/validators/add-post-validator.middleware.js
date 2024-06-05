@@ -2,6 +2,7 @@ import Joi from 'joi';
 
 // 즉 유효성 검사를 한 것이다.
 const schema = Joi.object({
+  imageUrl: Joi.string().optional(),
   title: Joi.string().required().messages({
     'any.required': '제목의 내용을 입력해주세요.',
   }),
