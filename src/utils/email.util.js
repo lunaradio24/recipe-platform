@@ -1,13 +1,7 @@
 import nodemailer from 'nodemailer';
 import { EMAIL_USER, EMAIL_PASS, CLIENT_URL } from '../constants/auth.constant.js';
 
-const transporter = nodemailer.createTransport({
-  service: 'Gmail',
-  auth: {
-    user: EMAIL_USER,
-    pass: EMAIL_PASS,
-  },
-});
+
 
 export const sendVerificationEmail = async (email, token) => {
   const transporter = nodemailer.createTransport({
