@@ -19,8 +19,8 @@ export const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
 export const KAKAO_CLIENT_SECRET = process.env.KAKAO_CLIENT_SECRET;
 export const KAKAO_CALLBACK_URL = process.env.KAKAO_CALLBACK_URL;
 
+export const SESSION_SECRET_KEY = process.env.SESSION_SECRET_KEY;
 
 export const HUNTER_API_KEY = process.env.HUNTER_API_KEY;
 
 export const ROLES = ['OWNER', 'ADMIN', 'MEMBER', 'BLACKLIST'];
-
