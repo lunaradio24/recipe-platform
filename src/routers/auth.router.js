@@ -12,16 +12,25 @@ import { sendVerificationEmail } from '../utils/email.util.js';
 import { signUpValidator } from '../middlewares/validators/sign-up-validator.middleware.js';
 import { signInValidator } from '../middlewares/validators/sign-in-validator.middleware.js';
 import { isLoggedIn, isNotLoggedIn } from '../middlewares/check-login.middleware.js';
-import { JWT_ACCESS_KEY, JWT_REFRESH_KEY, JWT_EMAIL_KEY, SALT_ROUNDS } from '../constants/auth.constant.js';
+import { JWT_ACCESS_KEY, JWT_REFRESH_KEY, JWT_EMAIL_KEY, SALT_ROUNDS,HUNTER_API_KEY } from '../constants/auth.constant.js';
+
 
 const authRouter = express.Router();
 
 // 회원가입 api
+
+async function verifyEmailWithHunter(email) {
+  const url = `https://api.hunter.io/v2/email-verifier?email=${email}&api_key=${HUNTER_API_KEY}`;
+  const response = await axios.get(url);
+  return response.data.data.result === 'deliverable';
+}
+
 authRouter.post('/sign-up', isNotLoggedIn, signUpValidator, async (req, res, next) => {
   try {
     const { email, password, confirmPassword, username, profileImage, introduction } = req.body;
 
     // 입력한 두 비밀번호가 일치하는지 확인
+
     if (password !== confirmPassword) {
       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '입력한 두 비밀번호가 일치하지 않습니다.');
     }
@@ -30,8 +39,28 @@ authRouter.post('/sign-up', isNotLoggedIn, signUpValidator, async (req, res, nex
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) throw new CustomError(HTTP_STATUS.CONFLICT, '이미 가입된 사용자입니다.');
 
+     // 이메일 존재 여부 확인
+     const isEmailValid = await verifyEmailWithHunter(email);
+     if (!isEmailValid) {
+       throw new CustomError(HTTP_STATUS.BAD_REQUEST, '존재하지 않는 이메일 주소입니다.');
+     }
+
+    const emailVerificationToken = jwt.sign({ email }, process.env.JWT_ACCESS_KEY, { expiresIn: '9h' });
+
+    // 이메일 전송
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: '이메일 인증을 완료해주세요',
+      html: `<p>이메일 인증을 위해 <a href="${process.env.CLIENT_URL}/verify-email?token=${emailVerificationToken}">여기</a>를 클릭해주세요.
+      해당 인증은 9시간이 지나면 폐기됩니다.</p>`,
+    };
+
+    // 이메일 전송 시도
+    await transporter.sendMail(mailOptions);
+
     // 비밀번호 해시화
-    const hashedPassword = bcrypt.hashSync(password, SALT_ROUNDS);
+    const hashedPassword = bcrypt.hashSync(password, parseInt(process.env.SALT_ROUNDS));
 
     const newUser = await prisma.user.create({
       data: {
@@ -44,12 +73,14 @@ authRouter.post('/sign-up', isNotLoggedIn, signUpValidator, async (req, res, nex
       },
     });
 
+
     // 이메일 인증 토큰 생성
     const emailVerificationToken = jwt.sign({ email }, JWT_EMAIL_KEY, { expiresIn: '9h' });
     // 이메일 인증 링크 발송
     await sendVerificationEmail(email, emailVerificationToken);
 
     // 반환 정보
+
     res.status(HTTP_STATUS.CREATED).json({
       message: '회원가입에 성공했습니다. 이메일 인증을 완료해주세요.',
       data: {
@@ -288,6 +319,7 @@ authRouter.get(
   },
 );
 
+
 // 네이버 로그인 api
 authRouter.get('/naver', passport.authenticate('naver')); // 네이버 로그인 페이지로 이동
 authRouter.get(
@@ -299,5 +331,6 @@ authRouter.get(
     res.status(200).redirect('/'); // 로그인에 성공했을 경우, 다음 라우터가 실행된다
   },
 );
+
 
 export { authRouter };
