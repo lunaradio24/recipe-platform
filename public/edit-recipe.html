@@ -84,7 +84,7 @@
 
           // response를 받아오는 데 성공하면
           if (response.ok) {
-            alert('레시피를 수정했습니다.');
+            alert('게시글을 수정했습니다.');
             // 0.5초 후 홈화면(index.html)으로 리다이렉트
             setTimeout(() => {
               window.location.href = `/read-recipe.html?postId=${postId}`;
@@ -92,7 +92,7 @@
           }
           // response를 받아오는 데 실패하면
           else {
-            alert('수정에 실패했습니다.');
+            alert('게시글 수정에 실패했습니다.');
           }
         } catch (error) {
           console.error('Error fetching profile data:', error);

@@ -15,7 +15,7 @@ postRouter.post(
   '/',
   requireAccessToken,
   blockRoles(['BLACKLIST']),
-  postUploadImage.single('image'),
+  postUploadImage.single('recipeImage'),
   addPostValidator,
   async (req, res, next) => {
     try {
@@ -142,7 +142,7 @@ postRouter.patch(
   '/:postId',
   requireAccessToken,
   blockRoles(['BLACKLIST']),
-  postUploadImage.single('image'),
+  postUploadImage.single('recipeImage'),
   editPostValidator,
   async (req, res, next) => {
     try {

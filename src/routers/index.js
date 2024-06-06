@@ -8,8 +8,8 @@ import { followRouter } from './follow.router.js';
 
 const apiRouter = express.Router();
 
+apiRouter.use('/auth', authRouter);
 apiRouter.use('/users', [userRouter, followRouter]);
 apiRouter.use('/posts', [postRouter, commentRouter, likeRouter]);
-apiRouter.use('/auth', authRouter);
 
 export { apiRouter };
