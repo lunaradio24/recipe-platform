@@ -13,7 +13,7 @@
       </nav>
     </header>
     <div class="profile-container">
-      <img src="assets/empty-profile-image.png" alt="Profile Picture" class="profile-picture" id="profilePicture" />
+      <img src="assets/empty-profile-image.png" alt="Profile Image" class="profile-image" id="profile-image" />
       <h1 class="nickname" id="nickname"></h1>
       <p class="bio" id="bio"></p>
       <p class="email" id="email"></p>
@@ -45,8 +45,8 @@
           document.getElementById('followers').innerText = `팔로워 수: ${user.followerCount}`;
 
           // profileImage가 null이면 기본 이미지 사용, not null이면 해당 이미지 사용
-          const profilePicture = document.getElementById('profilePicture');
-          if (user.profileImage) profilePicture.src = user.profileImage;
+          const profileImage = document.getElementById('profile-image');
+          if (user.profileImage) profileImage.src = user.profileImage;
 
           // 에러 처리
         } catch (error) {

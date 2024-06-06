@@ -28,8 +28,15 @@
         <button class="filter-btn">최신</button>
         <button class="filter-btn">인기</button>
       </div>
-      <div class="recipes"></div>
+      <section class="recipe-section">
+        <button class="prev" disabled="true">❮</button>
+        <div class="cards-container">
+          <ul class="card-list" id="recipe-cards"></ul>
+        </div>
+        <button class="next">❯</button>
+      </section>
     </main>
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
+    <script type="module" src="slider.js"></script>
   </body>
 </html>

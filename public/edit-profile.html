@@ -13,15 +13,15 @@
       </nav>
     </header>
     <div class="profile-container">
-      <form id="profileEditForm">
+      <form id="profile-edit-form">
         <div>
           <img
             src="assets/empty-profile-image.png"
-            alt="Profile Picture"
-            class="profile-picture"
-            id="profilePicturePreview"
+            alt="Profile Image"
+            class="profile-image"
+            id="profile-image-preview"
           />
-          <input type="file" id="profilePicture" accept="image/*" />
+          <input type="file" id="profile-image-file" accept="image/*" />
         </div>
         <div>
           <label for="nickname">닉네임</label>
@@ -34,6 +34,90 @@
         <button type="submit" class="edit-button">저장</button>
       </form>
     </div>
-    <script></script>
+    <script>
+      const profileEditForm = document.getElementById('profile-edit-form');
+      const imageInput = document.getElementById('profile-image-file');
+      const imagePreview = document.getElementById('profile-image-preview');
+
+      // 로컬 스토리지에서 Access Token을 가져옴
+      const accessToken = localStorage.getItem('accessToken');
+      async () => {
+        // Access Token 으로 기존 프로필 정보 가져오기
+        try {
+          const response = await fetch('/users/mypage', {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+
+          if (!response.ok) throw new Error('Network response was not ok');
+
+          const data = await response.json();
+          const user = data.user;
+
+          document.getElementById('nickname').innerText = user.username;
+          document.getElementById('bio').innerText = user.introduction;
+
+          // profileImage가 not null이면 해당 이미지 사용
+          if (user.profileImage) imagePreview.src = user.profileImage;
+
+          // 에러 처리
+        } catch (error) {
+          console.error('Error fetching profile data:', error);
+        }
+      };
+
+      // 이미지 업로드시 미리보기
+      imageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            imagePreview.src = e.target.result;
+            imagePreview.style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+        } else {
+          imagePreview.style.display = 'none';
+          imagePreview.src = '';
+        }
+      });
+
+      // 프로필 수정 버튼 클릭 시
+      profileEditForm?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const newNickname = document.getElementById('nickname').value;
+        const newBio = document.getElementById('bio').value;
+        const newImage = document.getElementById('profile-image-file').files[0];
+
+        const formData = new FormData();
+        if (newNickname) formData.append('username', newNickname);
+        if (newBio) formData.append('introduction', newBio);
+        if (newImage) formData.append('profileImage', newImage);
+
+        // 게시글 ID를 이용해 게시글 수정하는 API 요청
+        try {
+          const response = await fetch('/users/mypage', {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${accessToken}` },
+            body: formData,
+          });
+
+          // response를 받아오는 데 성공하면
+          if (response.ok) {
+            alert('레시피를 수정했습니다.');
+            // 0.5초 후 홈화면(index.html)으로 리다이렉트
+            setTimeout(() => {
+              window.location.href = `/read-recipe.html?postId=${postId}`;
+            }, 500);
+          }
+          // response를 받아오는 데 실패하면
+          else {
+            alert('수정에 실패했습니다.');
+          }
+        } catch (error) {
+          console.error('Error fetching profile data:', error);
+        }
+      });
+    </script>
   </body>
 </html>

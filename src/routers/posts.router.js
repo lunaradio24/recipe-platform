@@ -21,7 +21,7 @@ postRouter.post(
     try {
       const { userId } = req.user;
       const { title, content } = req.body;
-      const imageUrl = req.file ? req.file.location : null;
+      const imageUrl = req.file ? req.file.location : undefined;
 
       const data = await prisma.post.create({
         data: {
@@ -71,7 +71,9 @@ postRouter.get('/', async (req, res, next) => {
     data = data.map((post) => {
       return {
         postId: post.postId,
+        authorId: post.author.authorId,
         authorName: post.author.username,
+        authorProfileImage: post.author.profileImage,
         title: post.title,
         content: post.content,
         imageUrl: post.imageUrl,
@@ -147,7 +149,6 @@ postRouter.patch(
       const { userId } = req.user;
       const { postId } = req.params;
       const { title, content } = req.body;
-      postUploadImage.single('image');
       const imageUrl = req.file ? req.file.location : undefined;
 
       const existedPost = await prisma.post.findFirst({

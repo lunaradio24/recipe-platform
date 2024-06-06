@@ -5,6 +5,7 @@ import CustomError from '../utils/custom-error.util.js';
 import { userProfileValidator } from '../middlewares/validators/user-profile-validator.middleware.js';
 import { requireAccessToken } from '../middlewares/require-access-token.middleware.js';
 import { profileUploadImage } from '../utils/multer.util.js';
+import { blockRoles } from '../middlewares/block-roles.middleware.js';
 
 const userRouter = express.Router();
 
@@ -42,13 +43,14 @@ userRouter.get('/mypage', requireAccessToken, async (req, res, next) => {
 userRouter.patch(
   '/mypage',
   requireAccessToken,
+  blockRoles(['BLACKLIST']),
   profileUploadImage.single('image'),
   userProfileValidator,
   async (req, res, next) => {
     try {
       const { userId } = req.user;
       const updatedData = req.body;
-      const imageUrl = req.file ? req.file.location : null;
+      const imageUrl = req.file ? req.file.location : undefined;
 
       // 존재하는 사용자인지 확인
       const user = await prisma.user.findFirst({ where: { userId: userId } });
