@@ -65,7 +65,7 @@ model Post {
   createdAt           DateTime          @default(now()) @map("created_at")
   updatedAt           DateTime          @updatedAt @map("updated_at")
 
-  user                User              @relation(fields: [authorId], references: [userId], onDelete: Cascade)
+  author              User              @relation(fields: [authorId], references: [userId], onDelete: Cascade)
   comment             Comment[]
   postLike            PostLike[]
 
@@ -81,7 +81,7 @@ model Comment {
   createdAt           DateTime        @default(now()) @map("created_at")
   updatedAt           DateTime        @updatedAt @map("updated_at")
 
-  user                User            @relation(fields: [commenterId], references: [userId], onDelete: Cascade)
+  commenter           User            @relation(fields: [commenterId], references: [userId], onDelete: Cascade)
   post                Post            @relation(fields: [postId], references: [postId], onDelete: Cascade)
   commentLike         CommentLike[]
 

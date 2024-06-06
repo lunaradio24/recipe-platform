@@ -47,20 +47,23 @@ postRouter.post(
 postRouter.get('/', async (req, res, next) => {
   try {
     // 내림차순
-    let { sort } = req.query;
-    sort = sort?.toLowerCase();
+    let { sortBy, sortOption } = req.query;
+    sortBy = sortBy?.toLowerCase();
+    sortOption = sortOption?.toLowerCase();
 
-    if (sort !== 'desc' && sort !== 'asc') {
-      sort = 'desc';
+    if (sortOption !== 'desc' && sortOption !== 'asc') {
+      sortOption = 'desc';
     }
+
+    let sort = {};
+    if (sortBy === 'time') sort[createdAt] = sortOption;
+    if (sortBy === 'likes') sort[likeCount] = sortOption;
 
     // 게시글 목록 조회
     let data = await prisma.post.findMany({
-      orderBy: {
-        createdAt: sort,
-      },
+      orderBy: sort,
       include: {
-        user: true,
+        author: true,
       },
     });
 
@@ -68,7 +71,7 @@ postRouter.get('/', async (req, res, next) => {
     data = data.map((post) => {
       return {
         postId: post.postId,
-        userName: post.user.username,
+        authorName: post.author.username,
         title: post.title,
         content: post.content,
         imageUrl: post.imageUrl,

@@ -9,19 +9,19 @@ import { profileUploadImage } from '../utils/multer.util.js';
 const userRouter = express.Router();
 
 // 프로필 조회 API
-userRouter.get('/:userId', async (req, res, next) => {
+userRouter.get('/mypage', requireAccessToken, async (req, res, next) => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.user;
 
     // 유저 아이디로 닉네임, 프로필 이미지, 팔로우 숫자, 소개글 가져오기
     const user = await prisma.user.findFirst({
-      where: { userId: Number(userId) }, // userId를 숫자로 변환하여 검색
+      where: { userId: userId },
       select: {
         username: true,
+        email: true,
         profileImage: true,
         introduction: true,
         followerCount: true,
-        email: true,
       },
     });
 
@@ -33,7 +33,6 @@ userRouter.get('/:userId', async (req, res, next) => {
       message: `${user.username}의 프로필.`,
       user,
     });
-
   } catch (error) {
     next(error);
   }
@@ -41,28 +40,23 @@ userRouter.get('/:userId', async (req, res, next) => {
 
 // 프로필 수정 API
 userRouter.patch(
-  '/:userId',
+  '/mypage',
   requireAccessToken,
   profileUploadImage.single('image'),
   userProfileValidator,
   async (req, res, next) => {
     try {
-      const userIdFromToken = req.user.userId;
-      const { userId } = req.params;
+      const { userId } = req.user;
       const updatedData = req.body;
-
       const imageUrl = req.file ? req.file.location : null;
 
       // 존재하는 사용자인지 확인
-      const user = await prisma.user.findFirst({ where: { userId: +userId } });
+      const user = await prisma.user.findFirst({ where: { userId: userId } });
       if (!user) throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 사용자입니다.');
-
-      // 사용자 본인의 프로필을 수정하는지 확인
-      if (userIdFromToken !== user.userId) throw new CustomError(HTTP_STATUS.FORBIDDEN, '프로필 수정 권한이 없습니다.');
 
       // 사용자 정보 수정
       const updatedUser = await prisma.user.update({
-        where: { userId: +userId },
+        where: { userId: userId },
         data: {
           ...updatedData,
           profileImage: imageUrl,
