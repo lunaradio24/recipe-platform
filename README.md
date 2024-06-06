@@ -1,4 +1,4 @@
-# 🍦 recipe-platform backend
+# 🍦 Together (recipe-platform backend)
 
 이연서를 얻은 팀! to get her를 실현시킨 바로 그 팀 2조 together입니다.
 
