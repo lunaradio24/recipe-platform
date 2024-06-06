@@ -1,0 +1,127 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f0f0f0;
+}
+
+header {
+  background-color: #ffffff;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.recipe-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.recipe-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#recipe-title {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+#edit-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#recipe-author {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.recipe-info {
+  text-align: center;
+}
+
+#recipe-image {
+  max-width: 50%;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+#recipe-content {
+  font-size: 18px;
+  margin: 20px 0;
+}
+
+/* 반응형 디자인을 위한 미디어 쿼리 */
+@media (max-width: 768px) {
+  .recipe-container {
+    padding: 10px;
+    margin: 20px 10px;
+  }
+
+  header {
+    padding: 10px;
+  }
+
+  .logo {
+    font-size: 20px;
+  }
+
+  #recipe-title {
+    font-size: 20px;
+  }
+
+  #recipe-content {
+    font-size: 16px;
+  }
+
+  #recipe-author {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .recipe-container {
+    margin: 10px 5px;
+  }
+
+  .right-buttons {
+    align-items: center;
+  }
+
+  .post-btn,
+  .login-btn,
+  .profile-btn,
+  .logout-btn {
+    width: 100%;
+    text-align: center;
+  }
+}

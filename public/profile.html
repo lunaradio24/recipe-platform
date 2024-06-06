@@ -14,9 +14,9 @@
     </header>
     <div class="profile-container">
       <img src="assets/empty-profile-image.png" alt="Profile Picture" class="profile-picture" id="profilePicture" />
-      <h1 class="nickname" id="nickname">테스트입니다</h1>
-      <p class="bio" id="bio">안녕하세요 레시피를 받아보고 싶어서 이렇게 들어왔어요</p>
-      <p class="email" id="email">email@example.com</p>
+      <h1 class="nickname" id="nickname"></h1>
+      <p class="bio" id="bio"></p>
+      <p class="email" id="email"></p>
       <button class="edit-button" id="edit">프로필 수정</button>
       <p class="followers" id="followers">팔로우 수:</p>
     </div>
@@ -58,7 +58,7 @@
         const edit = document.getElementById('edit');
         if (edit) {
           edit.addEventListener('click', () => {
-            window.location.href = 'profilechange.html';
+            window.location.href = 'edit-profile.html';
           });
         }
       });
