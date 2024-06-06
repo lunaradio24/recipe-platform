@@ -17,10 +17,12 @@
 - The Coding Baby      송사무엘 : 게시글 기능, 프로필 사진 업로드 
 
 ## API 명세서 및 ERD, 와이어 프레임 
+https://teamsparta.notion.site/image/https%3A%2F%2Fprod-files-secure.s3.us-west-2.amazonaws.com%2F83c75a39-3aba-4ba4-a792-7aefe4b07895%2Fe4276969-db3a-4869-aff8-f9e0c6016b67%2FScreenshot_2024-05-31_at_13.34.54.png?table=block&id=67a4d8d9-21f2-4a38-920b-efd08b0f0434&spaceId=83c75a39-3aba-4ba4-a792-7aefe4b07895&width=2000&userId=&cache=v2
+
+https://teamsparta.notion.site/image/https%3A%2F%2Fprod-files-secure.s3.us-west-2.amazonaws.com%2F83c75a39-3aba-4ba4-a792-7aefe4b07895%2Fde48e450-191c-4782-b634-97ebc7cbf986%2FScreenshot_2024-05-31_at_14.00.57.png?table=block&id=8470f6bb-e312-47d4-851e-0e7bc6129d6c&spaceId=83c75a39-3aba-4ba4-a792-7aefe4b07895&width=2000&userId=&cache=v2
 
 
-
-# 실행 방법
+## 실행 방법
 
 - 필요한 패키지 설치
 
