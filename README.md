@@ -1,6 +1,6 @@
-# 이연서를 얻은 팀! to get her를 실현시킨 바로 그 팀 2조 together입니다.
+ #🍦 recipe-platform backend
 
-![image](https://github.com/lunaradio24/recipe-platform/assets/167057062/73da89ee-6aa5-4e74-a9dc-7baa0bf8a36d) recipe-platform backend
+이연서를 얻은 팀! to get her를 실현시킨 바로 그 팀 2조 together입니다.
 
 # 실행 방법
 
