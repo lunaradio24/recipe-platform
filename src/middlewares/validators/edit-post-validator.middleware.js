@@ -1,6 +1,5 @@
 import Joi from 'joi';
 
-// 즉 유효성 검사를 한 것이다.
 const schema = Joi.object({
   title: Joi.string(),
   content: Joi.string(),

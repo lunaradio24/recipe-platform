@@ -1,3 +1,12 @@
+html {
+  /* 스크롤시 부드럽게 내려감 */
+  scroll-behavior: smooth;
+}
+
+button:hover {
+  cursor: pointer;
+}
+
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -84,57 +93,142 @@ nav {
   cursor: pointer;
   border-radius: 4px;
 }
-
-.recipes {
+main {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 12vh;
+}
+.recipe-section {
+  display: flex;
   justify-content: center;
-  gap: 20px;
-  padding: 0 20px;
+  width: 90vw;
+  position: relative;
+}
+/*****     cards + arrows in a list     *****/
+.cards-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  /* width = 4 cards * (card width 18vw + gap 2vw) */
+  width: 80vw;
+  height: 28vw;
+  /* 넘치는 카드 가리기 */
+  overflow: hidden;
+}
+/*****     cards in a list     *****/
+.cards-container .card-list {
+  display: flex;
+  position: absolute;
+  margin: 0 0 0 0.5vw; /* Ensure no margin */
+  padding: 0; /* Ensure no padding */
+  left: 0;
+  gap: 2vw;
+}
+/*****     슬라이드 버튼     *****/
+.prev,
+.next {
+  all: unset;
+  color: #007bff;
+  opacity: 70%;
+  font-size: 4vw;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  cursor: pointer;
+}
+.prev {
+  left: 2vw;
+}
+.next {
+  right: 2vw;
+}
+.prev:hover,
+.next:hover {
+  opacity: 100%;
+  transform: scale(1.1) translateY(-50%);
 }
 
+/*****     each card     *****/
 .recipe-card {
+  margin: 0; /* Ensure no margin */
+  padding: 0; /* Ensure no padding */
   background-color: #ffffff;
   border: 1px solid #ccc;
-  border-radius: 8px;
-  overflow: hidden;
-  width: 20%;
-  height: 40%;
-  text-align: center;
+  border-radius: 2%;
+  width: 18vw;
+  height: 26vw;
+  list-style-type: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .recipe-card .image {
   background-color: #ddd;
   width: 100%;
-  height: 80%;
+  height: 75%;
   display: flex;
   align-items: center;
   justify-content: center;
-  object-fit: cover;
 }
 
 .recipe-card .image img {
   width: 100%;
-  height: auto; /* 이미지를 가로로 맞추고 비율 유지 */
+  height: 100%;
+  object-fit: cover;
 }
 
 .recipe-card .info {
-  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  height: 25%;
+  margin: 0;
+  padding: 0;
+  gap: 10%;
 }
 
 .recipe-card .title {
-  font-size: 18px;
-  margin: 10px 0;
+  font-size: 1.2vw;
+  text-align: center;
 }
 
-.recipe-card .author {
-  font-size: 14px;
-  color: #555;
+.recipe-card .footer {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
 }
 
-.recipe-card .likes {
+.recipe-card .footer .author {
+  width: 45%;
+  font-size: 100%;
+  color: #3e3d3d;
+  text-align: left;
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: 1vw;
+  margin-left: 1vw;
+}
+.recipe-card .footer .author .author-image {
+  border-radius: 50%;
+  width: 30%;
+}
+
+.recipe-card .footer .likes {
+  width: 45%;
   color: #e74c3c;
-  margin-left: 8px;
-  float: right;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.recipe-card .footer .likes .likes-btn {
+  margin-right: 5%;
+}
+
+.recipe-card .footer .likes .likes-btn:hover {
+  cursor: pointer;
 }
