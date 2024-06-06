@@ -1,83 +1,67 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>프로필조회</title>
-    <link rel="stylesheet" href="profile.css">
-</head>
-<body>
+    <link rel="stylesheet" href="profile.css" />
+  </head>
+  <body>
     <header>
-        <nav>
-            <a href="index.html" class="logo">맛없없 레시피</a>
-        </nav>
+      <nav>
+        <a href="index.html" class="logo">sharecipe</a>
+      </nav>
     </header>
     <div class="profile-container">
-        <img src="https://mblogthumb-phinf.pstatic.net/MjAyMDA2MTBfMTY1/MDAxNTkxNzQ2ODcyOTI2.Yw5WjjU3IuItPtqbegrIBJr3TSDMd_OPhQ2Nw-0-0ksg.8WgVjtB0fy0RCv0XhhUOOWt90Kz_394Zzb6xPjG6I8gg.PNG.lamute/user.png?type=w800" alt="Profile Picture" class="profile-picture" id="profilePicture">
-        <h1 class="nickname" id="nickname">테스트입니다</h1>
-        <p class="bio" id="bio">안녕하세요 레시피를 받아보고 싶어서 이렇게 들어왔어요</p>
-        <p class="email" id="email">email@example.com</p>
-        <button class="edit-button" id="edit">프로필 수정</button>
-        <p class="followers" id="followers">팔로우 수: </p>
+      <img src="assets/empty-profile-image.png" alt="Profile Picture" class="profile-picture" id="profilePicture" />
+      <h1 class="nickname" id="nickname">테스트입니다</h1>
+      <p class="bio" id="bio">안녕하세요 레시피를 받아보고 싶어서 이렇게 들어왔어요</p>
+      <p class="email" id="email">email@example.com</p>
+      <button class="edit-button" id="edit">프로필 수정</button>
+      <p class="followers" id="followers">팔로우 수:</p>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            // 로컬 스토리지에서 액세스 토큰을 가져옴
-            const token = localStorage.getItem('accessToken');
-            if (!token) {
-                alert('로그인이 필요합니다');
-                window.location.href = 'index.html';
-                return;
-            }
+      document.addEventListener('DOMContentLoaded', async () => {
+        // 로컬 스토리지에서 Access Token을 가져옴
+        const accessToken = localStorage.getItem('accessToken');
 
-            // 액세스 토큰을 이용해 사용자 ID를 가져오는 API 요청
-            const userIdResponse = await fetch('/auth/me', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (!userIdResponse.ok) {
-                console.error('Failed to fetch user ID');
-                return;
-            }
+        // Access Token을 이용해 프로필 데이터를 가져오는 API 요청
+        try {
+          const response = await fetch('/users/mypage', {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
 
-            const userIdData = await userIdResponse.json();
-            const userId = userIdData.userId;
+          if (!response.ok) throw new Error('Network response was not ok');
 
-            // 사용자 ID를 이용해 프로필 데이터를 가져오는 API 요청
-            const url = `/users/${userId}`;
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                const user = data.user;
+          const data = await response.json();
+          const user = data.user;
 
-                document.getElementById('nickname').innerText = user.username;
-                document.getElementById('email').innerText = user.email;  // 사용자 이메일 표시
-                document.getElementById('bio').innerText = user.introduction;
-                document.getElementById('followers').innerText = `팔로우 수: ${user.followerCount}`;
+          document.getElementById('nickname').innerText = user.username;
+          document.getElementById('email').innerText = user.email;
+          document.getElementById('bio').innerText = user.introduction;
+          document.getElementById('followers').innerText = `팔로워 수: ${user.followerCount}`;
 
-                // profileImage가 null이면 기본 이미지 사용
-                const profilePicture = document.getElementById('profilePicture');
-                if (user.profileImage) {
-                    profilePicture.src = user.profileImage;
-                }
-            } catch (error) {
-                console.error('Error fetching profile data:', error);
-            }
-        });
+          // profileImage가 null이면 기본 이미지 사용, not null이면 해당 이미지 사용
+          const profilePicture = document.getElementById('profilePicture');
+          if (user.profileImage) profilePicture.src = user.profileImage;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const edit = document.getElementById('edit');
-            if (edit) {
-                edit.addEventListener('click', () => {
-                    window.location.href = 'profilechange.html';
-                });
-            }
-        });
+          // 에러 처리
+        } catch (error) {
+          console.error('Error fetching profile data:', error);
+        }
+      });
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const edit = document.getElementById('edit');
+        if (edit) {
+          edit.addEventListener('click', () => {
+            window.location.href = 'profilechange.html';
+          });
+        }
+      });
     </script>
-</body>
+  </body>
 </html>

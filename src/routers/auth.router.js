@@ -33,7 +33,7 @@ async function verifyEmailWithHunter(email) {
 // 회원가입 api
 authRouter.post('/sign-up', signUpValidator, async (req, res, next) => {
   try {
-    const { email, password, confirmPassword, username, profileImage, introduction, } = req.body;
+    const { email, password, confirmPassword, username, profileImage, introduction } = req.body;
 
     // 입력한 두 비밀번호가 일치하는지 확인
     if (password !== confirmPassword) {
@@ -142,32 +142,29 @@ authRouter.post('/sign-in', signInValidator, async (req, res, next) => {
         token: hashedRefreshToken,
       },
     });
-    
+
     // 반환 정보
     return res.status(HTTP_STATUS.OK).json({
       status: HTTP_STATUS.OK,
       message: '로그인에 성공했습니다.',
       data: { accessToken, refreshToken },
-      
     });
-    
+
     // 에러 처리
   } catch (error) {
     next(error);
   }
 });
 
-// 프론트엔드 프로필 확인용 api
-authRouter.get('/me',requireAccessToken ,async (req, res, next) => {
+// 프론트엔드에서 Access Token으로 userId 가져오는 api
+authRouter.get('/get-userId', requireAccessToken, async (req, res, next) => {
   try {
     const userId = req.user.userId;
-    return res.status(200).json({userId});
-  }catch(error){
+    return res.status(200).json({ userId: userId });
+  } catch (error) {
     next(error);
   }
 });
-
-
 
 // 토큰 재발급 api
 authRouter.post('/renew-tokens', requireRefreshToken, async (req, res, next) => {
