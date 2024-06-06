@@ -214,7 +214,8 @@ main {
 }
 .recipe-card .footer .author .author-image {
   border-radius: 50%;
-  width: 30%;
+  width: 2vw;
+  height: 2vw;
 }
 
 .recipe-card .footer .likes {

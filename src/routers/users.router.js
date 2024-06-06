@@ -44,12 +44,12 @@ userRouter.patch(
   '/mypage',
   requireAccessToken,
   blockRoles(['BLACKLIST']),
-  profileUploadImage.single('image'),
+  profileUploadImage.single('profileImage'),
   userProfileValidator,
   async (req, res, next) => {
     try {
       const { userId } = req.user;
-      const updatedData = req.body;
+      const { username, introduction } = req.body;
       const imageUrl = req.file ? req.file.location : undefined;
 
       // 존재하는 사용자인지 확인
@@ -57,10 +57,11 @@ userRouter.patch(
       if (!user) throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 사용자입니다.');
 
       // 사용자 정보 수정
-      const updatedUser = await prisma.user.update({
+      await prisma.user.update({
         where: { userId: userId },
         data: {
-          ...updatedData,
+          username: username,
+          introduction: introduction,
           profileImage: imageUrl,
         },
       });
@@ -70,7 +71,8 @@ userRouter.patch(
         status: HTTP_STATUS.OK,
         message: '프로필을 수정했습니다',
         data: {
-          ...updatedUser,
+          username: username,
+          introduction: introduction,
           profileImage: imageUrl,
         },
       });
