@@ -66,37 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const likesDiv = document.createElement('div');
       likesDiv.classList.add('likes');
-      likesDiv.innerHTML = `<span class="likes-btn" id="likes-btn-${post.postId}">❤️</span><span class="likes-count">${post.likeCount}</span>`;
-
-      //좋아요 하트 버튼에 클릭 이벤트 핸들러를 부여
-      const likesBtn = document.getElementById(`likes-btn-${post.postId}`);
-      likesBtn?.addEventListener('click', async (event) => {
-        event.preventDefault();
-        try {
-          const response = await fetch(`/posts/${post.postId}/likes`, {
-            method: 'PUT',
-            headers: { Authorization: `Bearer ${accessToken}` },
-          });
-
-          const result = await response.json();
-
-          // response를 받아오는 데 성공하면 새로고침
-          if (response.ok) {
-            window.location.reload();
-          }
-          // 본인 게시글일 경우
-          else if (result.status === 403) {
-            alert('본인 게시글에는 좋아요를 누를 수 없습니다.');
-          }
-          // response를 받아오는 데 실패하면
-          else {
-            document.getElementById('message').innerText = result.message || '좋아요 클릭/취소에 실패했습니다.';
-          }
-          // 에러 처리
-        } catch (error) {
-          document.getElementById('message').innerText = '서버 오류가 발생했습니다.';
-        }
-      });
+      likesDiv.innerHTML = `<span class="likes-btn" data-post-id="${post.postId}">❤️</span><span class="likes-count">${post.likeCount}</span>`;
 
       footerDiv.appendChild(authorDiv);
       footerDiv.appendChild(likesDiv);
@@ -133,5 +103,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     window.location.href = 'login.html';
+  });
+
+  //좋아요 하트 버튼에 클릭 이벤트 핸들러를 부여
+  recipeCardList?.addEventListener('click', async (event) => {
+    if (event.target.classList.contains('likes-btn')) {
+      const postId = event.target.getAttribute('data-post-id');
+      try {
+        const response = await fetch(`/posts/${postId}/likes`, {
+          method: 'PUT',
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        const result = await response.json();
+
+        // response를 받아오는 데 성공하면 새로고침
+        if (response.ok) {
+          window.location.reload();
+        }
+        // 본인 게시글일 경우
+        else if (result.status === 403) {
+          console.log({ status: result.status, errorMessage: result.message });
+          alert('본인 게시글에는 좋아요를 누를 수 없습니다.');
+        }
+        // response를 받아오는 데 실패하면
+        else {
+          console.log({ status: result.status, errorMessage: result.message });
+          alert(result.message || '좋아요 클릭/취소에 실패했습니다.');
+        }
+        // 에러 처리
+      } catch (error) {
+        console.log({ status: error.status, errorMessage: error.message });
+        alert(error.message);
+      }
+    }
   });
 });
