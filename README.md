@@ -32,6 +32,13 @@
 
 ![image](https://github.com/lunaradio24/recipe-platform/assets/167057062/bd4598f9-4294-4c09-8364-c5bf9d0b912e)
 
+## Github Rules
+
+![image](https://github.com/lunaradio24/recipe-platform/assets/167057062/9443f8cf-c0a4-4d7e-be90-608b1dd5cb0d)
+
+## Code Convention
+
+![image](https://github.com/lunaradio24/recipe-platform/assets/167057062/a6e683d2-06c5-4f66-86d4-c50ea22b566e)
 
 
 ## 실행 방법
