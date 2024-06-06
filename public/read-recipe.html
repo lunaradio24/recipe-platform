@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>레시피 상세 페이지</title>
+    <link rel="stylesheet" href="read-recipe.css" />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="index.html" class="logo">sharecipe</a>
+      </nav>
+    </header>
+    <main>
+      <div class="recipe-container">
+        <div class="recipe-header">
+          <h2 id="recipe-title">레시피 제목</h2>
+          <button id="edit-button" class="edit-btn">수정</button>
+        </div>
+        <p id="recipe-author">작성자: <span id="author-name"></span></p>
+        <div class="recipe-info">
+          <img id="recipe-image" src="" alt="Recipe Image" />
+          <p id="recipe-content">레시피 내용</p>
+        </div>
+      </div>
+      <div class="comment-container"></div>
+    </main>
+    <script type="module" src="read-recipe.js"></script>
+  </body>
+</html>

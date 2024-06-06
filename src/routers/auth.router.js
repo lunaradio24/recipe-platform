@@ -160,7 +160,7 @@ authRouter.post('/sign-in', signInValidator, async (req, res, next) => {
 authRouter.get('/get-userId', requireAccessToken, async (req, res, next) => {
   try {
     const userId = req.user.userId;
-    return res.status(200).json({ userId: userId });
+    return res.status(200).json({ data: { userId: userId } });
   } catch (error) {
     next(error);
   }

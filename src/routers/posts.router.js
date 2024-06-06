@@ -100,32 +100,36 @@ postRouter.get('/:postId', async (req, res, next) => {
     const { postId } = req.params;
 
     let data = await prisma.post.findUnique({
-      where: { postId: +postId /**authorId: authorId**/ },
-      include: { user: true },
+      where: { postId: +postId },
+      include: { author: true, comment: true },
     });
 
     if (!data) {
       throw new CustomError(HTTP_STATUS.NOT_FOUND, '존재하지 않는 게시글입니다.');
     }
 
-    data = {
+    // 평탄화
+    const responseData = {
       postId: data.postId,
-      userName: data.user.username,
+      authorId: data.author.userId,
+      authorName: data.author.username,
       title: data.title,
       content: data.content,
       imageUrl: data.imageUrl,
       likeCount: data.likeCount,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
+      comment: data.comment,
     };
 
+    // 반환 정보
     return res.status(HTTP_STATUS.OK).json({
       status: HTTP_STATUS.OK,
       message: '게시글 상세 조회가 완료되었습니다.',
-      data,
+      data: responseData,
     });
 
-    next();
+    // 에러 처리
   } catch (error) {
     next(error);
   }
@@ -136,18 +140,18 @@ postRouter.patch(
   '/:postId',
   requireAccessToken,
   blockRoles(['BLACKLIST']),
+  postUploadImage.single('image'),
   editPostValidator,
   async (req, res, next) => {
     try {
-      const user = req.user;
-      const authorId = user.id;
+      const { userId } = req.user;
       const { postId } = req.params;
       const { title, content } = req.body;
       postUploadImage.single('image');
       const imageUrl = req.file ? req.file.location : undefined;
 
       const existedPost = await prisma.post.findFirst({
-        where: { authorId: authorId, postId: +postId },
+        where: { authorId: userId, postId: +postId },
       });
 
       if (!existedPost) {
@@ -162,7 +166,7 @@ postRouter.patch(
       const data = await prisma.post.update({
         where: {
           postId: +postId, // 수정이니까 작성자가 맞는지 post의 id가 데이터 테이블 속 id랑 맞는지 확인
-          authorId: authorId, // 수정이니까 작성자가 맞는지 작성자의 id가 데이터 테이블 속 id랑 맞는지 확인
+          authorId: userId, // 수정이니까 작성자가 맞는지 작성자의 id가 데이터 테이블 속 id랑 맞는지 확인
         },
         data: {
           title: title,

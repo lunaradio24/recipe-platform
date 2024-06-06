@@ -8,6 +8,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 로컬스토리지에서 엑세스토큰 가져오기
   const accessToken = localStorage.getItem('accessToken');
 
+  // 레시피 카드 클릭시 생성할 이벤트
+  function recipeCardClick(event, postId) {
+    event.preventDefault();
+    // 상세 페이지로 이동
+    window.location.href = './detail.html';
+  }
+
   if (accessToken) {
     // 로그인된 상태면 로그인 버튼 숨기고 로그아웃 버튼 보이기
     if (loginBtn) loginBtn.style.display = 'none';
@@ -25,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const jsonData = await response.json();
     const posts = jsonData.data;
-    console.log(posts);
+
     // 데이터 형식이 배열인지 확인
     if (!Array.isArray(posts)) throw new Error('서버에서 올바른 형식의 데이터를 받지 못했습니다.');
 
@@ -52,7 +59,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const likesDiv = document.createElement('div');
       likesDiv.classList.add('likes');
-      likesDiv.innerHTML = `<span class="likes">❤️ ${post.likeCount}</span>`;
+      likesDiv.innerHTML = `<span class="likes-btn" id="likes-btn">❤️</span><span class="likes-count"> ${post.likeCount}</span>`;
+      //좋아요 하트 버튼에 클릭 이벤트 핸들러를 부여
+      const likesBtn = document.getElementById('likes-btn');
+      likesBtn?.addEventListener('click', async (event) => {
+        event.preventDefault();
+        try {
+          const response = await fetch(`/posts/${post.postId}/likes`, {
+            method: 'PUT',
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+
+          const result = await response.json();
+
+          // response를 받아오는 데 성공하면 새로고침
+          if (response.ok) {
+            window.location.reload();
+          }
+          // response를 받아오는 데 실패하면
+          else {
+            document.getElementById('message').innerText = result.message || '좋아요 클릭/취소에 실패했습니다.';
+          }
+          // 에러 처리
+        } catch (error) {
+          document.getElementById('message').innerText = '서버 오류가 발생했습니다.';
+        }
+      });
 
       infoDiv.appendChild(titleDiv);
       infoDiv.appendChild(authorDiv);
@@ -60,7 +92,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       recipeCard.appendChild(imageDiv);
       recipeCard.appendChild(infoDiv);
-
+      // 레시피 카드에 클릭 이벤트 핸들러를 부여
+      recipeCard.addEventListener('click', async (event) => {
+        event.preventDefault();
+        // 상세 페이지로 이동
+        window.location.href = `read-recipe.html?postId=${post.postId}`;
+      });
       recipesContainer.appendChild(recipeCard);
     });
 
@@ -76,7 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   postBtn?.addEventListener('click', () => {
     if (!accessToken) alert('로그인이 필요합니다');
-    else window.location.href = 'post.html';
+    else window.location.href = 'post-recipe.html';
   });
 
   loginBtn?.addEventListener('click', () => {
