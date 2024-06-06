@@ -103,6 +103,7 @@ main {
   display: flex;
   justify-content: center;
   width: 90vw;
+  margin-top: 5vh;
   position: relative;
 }
 /*****     cards + arrows in a list     *****/
