@@ -16,10 +16,21 @@
 - The Coding Philosopher 조영진 : 프로필 기능, 발표, PPT 작성
 - The Coding Baby      송사무엘 : 게시글 기능, 프로필 사진 업로드 
 
-## API 명세서 및 ERD, 와이어 프레임 
+
+## 와이어 프레임 
 ![image](https://github.com/lunaradio24/recipe-platform/assets/167057062/bff6eb84-c42b-4845-a6f1-0465b10d54fe)
 
 ![image](https://github.com/lunaradio24/recipe-platform/assets/167057062/d6789828-d051-4367-a151-edc79f2e5e30)
+
+
+## API 명세서
+
+![image](https://github.com/lunaradio24/recipe-platform/assets/167057062/7801998b-17c7-47f7-a3b6-304f55928399)
+
+
+## ERD
+
+![image](https://github.com/lunaradio24/recipe-platform/assets/167057062/bd4598f9-4294-4c09-8364-c5bf9d0b912e)
 
 
 
