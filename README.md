@@ -14,6 +14,23 @@
  - 소개
     - 한 줄 정리 : 레시피를 포스팅, 좋아요, 댓글을 달 수 있는 레시피 공유 플랫폼
 
+## 🚦 Project Rules
+
+ # 개발환경
+ - OS: Window / Mac
+ - Code editor: Visual Studio Code
+ - Client-Tool : Insomnia
+ - DB-Tool: DBeaver
+ - Database: AWS/RDS (MySQL)
+ - Server: AWS/EC2
+
+ # 개발언어
+ - Front-End : Html, CSS, Javascript
+ - Back-End : Javascript
+    - Node.js, Express.js
+ - Database: MySQL
+    - ORM: Prisma
+ 
 ## 역할
 - The Team Leader        여창준 : 좋아요 기능, 소셜 로그인 기능, 뉴스피트 기능, 프론트 엔트, 깃허브 관리
 - Coding Monster         이연서 : 댓글 기능, 팔로우 기능, 프로필 사진 업로드
