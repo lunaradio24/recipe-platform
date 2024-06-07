@@ -13,18 +13,30 @@
       </nav>
     </header>
     <main>
-      <div class="recipe-container">
+      <div class="post-container">
         <div class="recipe-header">
           <h2 id="recipe-title">레시피 제목</h2>
-          <button id="edit-button" class="edit-btn">수정</button>
+          <div class="button-container">
+            <button id="edit-button" class="edit-btn">수정</button>
+            <button id="delete-button" class="delete-btn">삭제</button>
+          </div>
         </div>
         <p id="recipe-author">작성자: <span id="author-name"></span></p>
         <div class="recipe-info">
           <img id="recipe-image" src="" alt="Recipe Image" />
           <p id="recipe-content">레시피 내용</p>
         </div>
+        <section class="comment-section">
+          <h3 id="comment-container-title">댓글</h3>
+          <div class="comment-input-form-group">
+            <form class="comment-input-form" id="comment-input-form">
+              <textarea class="comment-input" id="comment-input" name="comment-input"></textarea>
+              <button type="submit" class="comment-input-button">댓글 작성</button>
+            </form>
+          </div>
+          <ul class="comment-list" id="comment-list"></ul>
+        </section>
       </div>
-      <div class="comment-container"></div>
     </main>
     <script type="module" src="read-recipe.js"></script>
   </body>

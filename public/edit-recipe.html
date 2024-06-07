@@ -29,7 +29,7 @@
           </div>
           <div class="form-group">
             <label for="image">이미지:</label>
-            <input type="file" id="image" name="image" accept="image/*" />
+            <input type="file" id="image" accept="image/*" />
             <img id="image-preview" alt="미리보기 이미지" />
           </div>
         </form>
@@ -45,6 +45,35 @@
       const postForm = document.getElementById('post-form');
       const imageInput = document.getElementById('image');
       const imagePreview = document.getElementById('image-preview');
+      const titleInput = document.getElementById('title');
+      const contentInput = document.getElementById('content');
+
+      // 기존 게시글 정보를 가져오는 함수
+      async function fetchPostData() {
+        try {
+          const response = await fetch(`/posts/${postId}`, {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+
+          if (!response.ok) throw new Error('Network response was not ok');
+
+          const result = await response.json();
+          const post = result.data;
+
+          // 입력란에 기존 정보 디폴트로 넣어주기
+          titleInput.value = post.title;
+          contentInput.value = post.content;
+
+          // 이미지가 존재하면 미리보기에 표시
+          if (post.imageUrl) imagePreview.src = post.imageUrl;
+        } catch (error) {
+          console.error('Error fetching post data:', error);
+        }
+      }
+
+      // 페이지 로딩 시 기존 게시글 정보를 가져옴
+      fetchPostData();
 
       // 이미지 업로드시 미리보기
       imageInput.addEventListener('change', (e) => {
@@ -62,17 +91,17 @@
         }
       });
 
-      //레시피 수정 버튼 클릭 시
+      // 게시글 수정 버튼 클릭 시
       postForm?.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const title = document.getElementById('title').value;
-        const content = document.getElementById('content').value;
-        const image = document.getElementById('image').files[0];
+        const title = titleInput.value;
+        const content = contentInput.value;
+        const image = imageInput.files[0];
 
         const formData = new FormData();
-        if (title) formData.append('title', title);
-        if (content) formData.append('content', content);
-        if (image) formData.append('image', image);
+        if (title.trim()) formData.append('title', title);
+        if (content.trim()) formData.append('content', content);
+        if (image) formData.append('recipeImage', image);
 
         // 게시글 ID를 이용해 게시글 수정하는 API 요청
         try {
