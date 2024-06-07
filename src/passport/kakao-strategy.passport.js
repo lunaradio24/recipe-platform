@@ -29,7 +29,7 @@ const kakaoStrategy = () => {
                 profileImage: profile_image,
                 email: email,
                 emailVerified: true,
-                socialLoginProvider: 'kakao',
+                socialProvider: 'kakao',
               },
             });
           }
@@ -42,7 +42,7 @@ const kakaoStrategy = () => {
                 profileImage: profile_image,
                 email: email,
                 mailVerified: true,
-                socialLoginProvider: 'kakao',
+                socialProvider: 'kakao',
               },
             });
           }

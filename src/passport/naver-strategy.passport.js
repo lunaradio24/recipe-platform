@@ -29,7 +29,7 @@ const naverStrategy = () => {
                 profileImage: profile_image,
                 email: email,
                 emailVerified: true,
-                socialLoginProvider: 'naver',
+                socialProvider: 'naver',
               },
             });
           }
@@ -42,7 +42,7 @@ const naverStrategy = () => {
                 profileImage: profile_image,
                 email: email,
                 mailVerified: true,
-                socialLoginProvider: 'naver',
+                socialProvider: 'naver',
               },
             });
           }
