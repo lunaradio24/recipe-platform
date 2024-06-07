@@ -51,36 +51,17 @@ postRouter.get('/', async (req, res, next) => {
     sortBy = sortBy?.toLowerCase();
     sortOption = sortOption?.toLowerCase();
 
-    if (sortOption !== 'desc' && sortOption !== 'asc') {
-      sortOption = 'desc';
-    }
+    sortBy = sortBy ?? 'time';
+    sortOption = sortOption ?? 'desc';
 
     let sort = {};
-    if (sortBy === 'time') sort[createdAt] = sortOption;
-    if (sortBy === 'likes') sort[likeCount] = sortOption;
+    if (sortBy === 'time') sort = { createdAt: sortOption };
+    if (sortBy === 'likes') sort = { likeCount: sortOption };
 
     // 게시글 목록 조회
     let data = await prisma.post.findMany({
       orderBy: sort,
-      include: {
-        author: true,
-      },
-    });
-
-    // 평탄화
-    data = data.map((post) => {
-      return {
-        postId: post.postId,
-        authorId: post.author.authorId,
-        authorName: post.author.username,
-        authorProfileImage: post.author.profileImage,
-        title: post.title,
-        content: post.content,
-        imageUrl: post.imageUrl,
-        likeCount: post.likeCount,
-        createdAt: post.createdAt,
-        updatedAt: post.updatedAt,
-      };
+      include: { author: true },
     });
 
     // 반환 정보
@@ -103,7 +84,20 @@ postRouter.get('/:postId', async (req, res, next) => {
 
     let data = await prisma.post.findUnique({
       where: { postId: +postId },
-      include: { author: true, comment: true },
+      include: {
+        author: true,
+        comment: {
+          include: {
+            commenter: {
+              select: {
+                userId: true,
+                username: true,
+                profileImage: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!data) {

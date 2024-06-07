@@ -28,7 +28,7 @@ nav {
   text-decoration: none;
 }
 
-.recipe-container {
+.post-container {
   max-width: 800px;
   margin: 40px auto;
   padding: 20px;
@@ -49,8 +49,23 @@ nav {
   margin-bottom: 20px;
 }
 
+.button-container {
+  position: absolute;
+  top: 2vw;
+  right: 2vw;
+}
+
 #edit-button {
   background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#delete-button {
+  background-color: #fa3535;
   color: white;
   border: none;
   padding: 8px 12px;
@@ -79,10 +94,128 @@ nav {
   font-size: 18px;
   margin: 20px 0;
 }
+/***   댓글 입력 부분  ***/
+.comment-input-form-group {
+  display: flex;
+  justify-content: center;
+}
+.comment-input-form {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 80%;
+  height: 5vw;
+  background-color: pink;
+  position: relative;
+}
+.comment-input {
+  width: 80%;
+  height: 90%;
+  float: left;
+}
+
+.comment-input-button {
+  background-color: #474748;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  position: absolute;
+  right: 1vw;
+}
+/***   댓글 리스트  ***/
+#comment-list {
+  list-style: none;
+  padding: 0;
+}
+
+.comment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  flex-wrap: wrap;
+  position: relative; /* 라인을 추가하기 위해 position 속성을 추가 */
+}
+
+.comment-item .commenter {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  flex: 1 1 auto;
+}
+
+.comment-item .commenter-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.comment-item .commenter-username {
+  font-weight: bold;
+}
+
+.comment-item .comment-text {
+  flex: 2 1 auto;
+  margin-right: 10px;
+}
+
+.comment-item .comment-time {
+  font-size: 0.9em;
+  color: #888;
+  margin-right: 10px;
+}
+
+.comment-item .comment-likes {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+}
+
+.comment-item .comment-likes-btn {
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.comment-item .comment-button-group {
+  display: flex;
+  align-items: center;
+}
+
+/* 반응형 처리 */
+@media (max-width: 768px) {
+  .comment-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .comment-item .commenter,
+  .comment-item .comment-text,
+  .comment-item .comment-time,
+  .comment-item .comment-likes,
+  .comment-item .comment-button-group {
+    margin-right: 0;
+    margin-bottom: 5px;
+  }
+
+  .comment-item .comment-text {
+    margin-bottom: 10px;
+  }
+
+  .comment-item .comment-button-group {
+    justify-content: flex-start;
+  }
+}
 
 /* 반응형 디자인을 위한 미디어 쿼리 */
 @media (max-width: 768px) {
-  .recipe-container {
+  .post-container {
     padding: 10px;
     margin: 20px 10px;
   }
@@ -109,7 +242,7 @@ nav {
 }
 
 @media (max-width: 480px) {
-  .recipe-container {
+  .post-container {
     margin: 10px 5px;
   }
 
