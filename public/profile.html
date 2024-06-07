@@ -4,16 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>프로필조회</title>
-    <link rel="stylesheet" href="profile.css" />
+    <link rel="stylesheet" href="./style/profile.css" />
   </head>
   <body>
     <header>
       <nav>
-        <a href="index.html" class="logo">sharecipe</a>
+        <a href="./index.html" class="logo">sharecipe</a>
       </nav>
     </header>
     <div class="profile-container">
-      <img src="assets/empty-profile-image.png" alt="Profile Image" class="profile-image" id="profile-image" />
+      <img src="./assets/empty-profile-image.png" alt="Profile Image" class="profile-image" id="profile-image" />
       <h1 class="nickname" id="nickname"></h1>
       <p class="bio" id="bio"></p>
       <p class="email" id="email"></p>
@@ -58,7 +58,7 @@
         const edit = document.getElementById('edit');
         if (edit) {
           edit.addEventListener('click', () => {
-            window.location.href = 'edit-profile.html';
+            window.location.href = '/edit-profile.html';
           });
         }
       });

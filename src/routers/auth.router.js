@@ -236,7 +236,7 @@ authRouter.get('/verify-email', async (req, res, next) => {
 
     // 이미 이메일 인증을 완료한 경우
     if (user.emailVerified) {
-      return res.redirect('/mail/reverified.html');
+      return res.redirect('/reverified.html');
     }
     // 이메일 인증 완료
     await prisma.$transaction(
@@ -256,7 +256,7 @@ authRouter.get('/verify-email', async (req, res, next) => {
     );
 
     // 반환 정보
-    return res.redirect('/mail/verified.html');
+    return res.redirect('/verified.html');
 
     // 에러 처리
   } catch (error) {
@@ -306,119 +306,39 @@ authRouter.post('/send-verification-email', requireAccessToken, async (req, res,
 });
 
 // 카카오 로그인 api
-authRouter.get('/kakao', passport.authenticate('kakao', { session: false })); // 카카오 로그인 페이지로 이동
+authRouter.get('/kakao', passport.authenticate('kakao')); // 카카오 로그인 페이지로 이동
 authRouter.get(
   '/kakao/callback',
   passport.authenticate('kakao', {
-    session: false,
     failureRedirect: '/?error=로그인실패', // 로그인에 실패했을 경우 해당 라우터로 이동한다
   }),
   async (req, res, next) => {
-    try {
-      const { userId } = req.user;
-      // userId 정보를 payload에 넣어 auth session code 생성
-      const payload = { userId: userId };
-      const authSessionCode = jwt.sign(payload, SESSION_SECRET_KEY, { expiresIn: '1m' });
-
-      // auth session code를 DB에 저장
-      await prisma.authCode.create({
-        data: {
-          userId: userId,
-          sessionCode: authSessionCode,
-          expiredAt: new Date(Date.now() + 1 * 60 * 1000),
-        },
-      });
-
-      // 로그인에 성공했을 경우 반환 정보
-      res.status(HTTP_STATUS.OK).redirect(`/session?code=${authSessionCode}`);
-
-      // 에러 처리
-    } catch (error) {
-      next(error);
-    }
+    // 로그인에 성공했을 경우 반환 정보
+    console.log(req.user);
+    res.redirect('/');
   },
 );
 
 // 네이버 로그인 api
-authRouter.get('/naver', passport.authenticate('naver', { session: false })); // 네이버 로그인 페이지로 이동
+authRouter.get('/naver', passport.authenticate('naver')); // 네이버 로그인 페이지로 이동
 authRouter.get(
   '/naver/callback',
   passport.authenticate('naver', {
-    session: false,
     failureRedirect: '/?error=로그인실패', // 로그인에 실패했을 경우 해당 라우터로 이동한다
   }),
   async (req, res, next) => {
-    try {
-      const { userId } = req.user;
-      // userId 정보를 payload에 넣어 auth session code 생성
-      const payload = { userId: userId };
-      const authSessionCode = jwt.sign(payload, SESSION_SECRET_KEY, { expiresIn: '1m' });
-
-      // auth session code를 DB에 저장
-      await prisma.authCode.create({
-        data: {
-          userId: userId,
-          sessionCode: authSessionCode,
-          expiredAt: new Date(Date.now() + 1 * 60 * 1000),
-        },
-      });
-
-      // 로그인에 성공했을 경우 반환 정보
-      res.status(HTTP_STATUS.OK).redirect(`/session?code=${authSessionCode}`);
-
-      // 에러 처리
-    } catch (error) {
-      next(error);
-    }
+    // 로그인에 성공했을 경우 반환 정보
+    console.log(req.user);
+    res.redirect('/');
   },
 );
 
 // 소셜 로그인 인증 api
-authRouter.post('/verify-session', async (req, res, next) => {
-  try {
-    const authorization = req.headers.authorization;
-    if (!authorization) throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '인증 정보가 없습니다');
-
-    const [type, sessionCode] = authorization.split(' ');
-    if (type !== 'Bearer') throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '지원하지 않는 인증 방식입니다.');
-    if (!accessToken) throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '인증 정보가 없습니다.');
-
-    const payload = jwt.verify(sessionCode, SESSION_SECRET_KEY);
-    const userId = payload.userId;
-
-    // auth_codes 테이블에 저장된 코드와 일치하는지 확인
-    const savedSessionCode = await prisma.authCode.findUnique({ where: { userId: userId } });
-    if (sessionCode !== savedSessionCode) {
-      throw new CustomError(HTTP_STATUS.UNAUTHORIZED, '인증 정보가 일치하지 않습니다.');
-    }
-
-    // 일치하면 토큰 발급
-    const accessToken = jwt.sign(payload, JWT_ACCESS_KEY, { expiresIn: '3h' });
-    const refreshToken = jwt.sign(payload, JWT_REFRESH_KEY, { expiresIn: '7d' });
-
-    // 비밀번호는 hash 처리해서 DB에 저장
-    const hashedRefreshToken = bcrypt.hashSync(refreshToken, SALT_ROUNDS);
-    await prisma.refreshToken.upsert({
-      where: { userId: userId },
-      update: { token: hashedRefreshToken },
-
-      create: {
-        userId: userId,
-        token: hashedRefreshToken,
-      },
-    });
-
-    // 반환 정보
-    return res.status(HTTP_STATUS.OK).json({
-      status: HTTP_STATUS.OK,
-      message: '성공적으로 로그인 했습니다.',
-      data: { accessToken, refreshToken },
-    });
-
-    // 에러 처리
-  } catch (error) {
-    next(error);
-  }
-});
+// authRouter.get('/social-login', (req, res, next) => {
+//   if (!req.isAuthenticated()) {
+//     return res.redirect('/');
+//   }
+//   res.json(req.user);
+// });
 
 export { authRouter };
