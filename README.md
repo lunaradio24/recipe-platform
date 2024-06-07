@@ -32,7 +32,7 @@
     - ORM: Prisma
  
 ## 역할
-- The Coding Jesus        - 여창준 : 좋아요 기능, 소셜 로그인 기능, 뉴스피트 기능, 프론트 엔트, 깃허브 관리
+- The Coding Jesus        - 여창준 : 좋아요 기능, 소셜 로그인 기능, 뉴스피드 기능, 프론트 엔트, 깃허브 관리
 - Coding Monster          - 이연서 : 댓글 기능, 팔로우 기능, 프로필 사진 업로드
 - The King of Coding      - 김현민 : auth 기능, 이메일 가입 및 인증, 프론트 엔트
 - The Coding Philosopher  - 조영진 : 프로필 기능, 발표, PPT 작성
