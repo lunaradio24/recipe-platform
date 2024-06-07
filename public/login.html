@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>로그인</title>
-    <link rel="stylesheet" href="login.css" />
+    <link rel="stylesheet" href="./style/login.css" />
   </head>
 
   <body>
     <header>
       <nav>
-        <a href="index.html" class="logo">sharecipe</a>
+        <a href="./index.html" class="logo">sharecipe</a>
       </nav>
     </header>
     <main>
@@ -41,7 +41,7 @@
         const signupbtn = document.getElementById('sign-up');
 
         signupbtn?.addEventListener('click', () => {
-          window.location.href = 'sign-up.html';
+          window.location.href = '/sign-up.html';
         });
       });
 
@@ -79,7 +79,7 @@
 
                 // 0.5초 후 홈화면(index.html)으로 리다이렉트
                 setTimeout(() => {
-                  window.location.href = '/index.html';
+                  window.location.href = './index.html';
                 }, 500);
               }
               // access token, refresh token 둘 중 하나라도 받아오지 못하면

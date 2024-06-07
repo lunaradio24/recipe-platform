@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (!postId) {
     alert('게시글 ID가 제공되지 않았습니다.');
-    window.location.href = 'index.html';
+    window.location.href = './index.html';
     return;
   }
 
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const userId = user.userId;
 
         if (userId !== authorId) alert('게시글은 작성자 본인만 수정할 수 있습니다.');
-        else window.location.href = `edit-recipe.html?postId=${postId}`;
+        else window.location.href = `/edit-recipe.html?postId=${postId}`;
       }
     });
 
@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (response.ok) {
               // 성공적으로 삭제되면 홈 페이지로 이동
               alert('게시글을 삭제했습니다.');
-              window.location.href = 'index.html';
+              window.location.href = './index.html';
             } else {
               // 삭제에 실패한 경우에 대한 처리
               const result = await response.json();

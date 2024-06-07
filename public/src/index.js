@@ -43,10 +43,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const recipeCard = document.createElement('li');
     recipeCard.classList.add('recipe-card');
 
-    const authorImage = post.author.profileImage ? post.author.profileImage : 'assets/empty-profile-image.png';
+    const authorImage = post.author.profileImage ? post.author.profileImage : '../assets/empty-profile-image.png';
 
     recipeCard.innerHTML = `
-      <div class="image" onclick="window.location.href='read-recipe.html?postId=${post.postId}'">
+      <div class="image" onclick="window.location.href='/read-recipe.html?postId=${post.postId}'">
         ${post.imageUrl ? `<img src="${post.imageUrl}" alt="recipe image">` : 'No image'}
       </div>
       <div class="info">
@@ -69,19 +69,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 이벤트 리스너 등록
   profileBtn?.addEventListener('click', () => {
     if (!accessToken) alert('로그인이 필요합니다');
-    else window.location.href = 'profile.html';
+    else window.location.href = '/profile.html';
   });
   postBtn?.addEventListener('click', () => {
     if (!accessToken) alert('로그인이 필요합니다');
-    else window.location.href = 'post-recipe.html';
+    else window.location.href = '/post-recipe.html';
   });
   loginBtn?.addEventListener('click', () => {
-    window.location.href = 'login.html';
+    window.location.href = '/login.html';
   });
   logoutBtn?.addEventListener('click', () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    window.location.href = 'login.html';
+    window.location.href = './login.html';
   });
 
   // 좋아요 버튼 이벤트 리스너
